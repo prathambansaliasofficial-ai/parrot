@@ -264,3 +264,104 @@ def identify_topics(
             "llm_used": False,
         },
     }
+
+
+def _block_from_passage(
+    passage: dict,
+    headings: List[str],
+    resource_id: str,
+    subject: str,
+    category: str,
+) -> ConceptBlock:
+    """Build a ConceptBlock from a passage and its heading context."""
+    title = passage["title"] or "."
+    content = passage["content"]
+
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?]) +", content) if s.strip()]
+
+    key_defs: List[str] = []
+    important: List[str] = []
+    examples: List[str] = []
+    keywords: List[str] = []
+
+    # Surface definition‑like sentences.
+    for sent in sentences:
+        low = sent.lower()
+        if any(kw in low for kw in {"is", "means", "refers to", "definition"}):
+            key_defs.append(sent.strip())
+
+    # If nothing captured, fall back to first sentence.
+    if not key_defs and sentences:
+        key_defs.append(sentences[0])
+
+    # Short explanation: first 2–3 sentences, or first 200 chars.
+    explanation_sentences = [s for s in sentences if s not in key_defs][:3]
+    explanation = " ".join(explanation_sentences).strip() or content[:200] or "No explanation could be extracted."
+
+    # Heuristic: if the first heading-like sentence mentions a core concept,
+    # use it as a keyword.
+    first_heading = headings[0] if headings else ""
+
+    # Try to locate page numbers from the passage's page_range.
+    page_nums = passage.get("page_range", [1])
+
+    concept = ConceptBlock(
+        concept_title=title,
+        explanation=explanation,
+        key_definitions=key_defs,
+        important_facts=important,
+        examples=examples,
+        prerequisites=[],
+        related_concepts=[],
+        keywords=keywords[:12],
+        resource_id=resource_id,
+        page_numbers=page_nums,
+        section_reference=first_heading,
+        subject=subject,
+        category=category,
+        processing_version="v1.0",
+        extraction_status="identified",
+    )
+    return concept
+
+
+def identify_topics(
+    resource_id: str,
+    subject: str,
+    category: str,
+    extracted_text: str,
+    use_llm: bool = False,
+) -> dict:
+    """Identify topics and create concept blocks from extracted text.
+
+    Returns a dict with:
+    - headings: list of detected headings
+    - passages: list of {title, content, page_range}
+    - concepts: list of ConceptBlock
+    - metadata: extraction diagnostics
+    """
+
+    headings = _extract_headings(extracted_text)
+    passages = _split_into_passages(extracted_text, headings)
+
+    concepts: List[ConceptBlock] = []
+
+    for passage in passages[:10]:  # limit to first 10 topics
+        concept = _block_from_passage(passage, headings, resource_id, subject, category)
+        concepts.append(concept)
+
+    return {
+        "resource_id": resource_id,
+        "subject": subject,
+        "category": category,
+        "headings": headings,
+        "passages": passages,
+        "concepts": concepts,
+        "extraction_diagnostics": {
+            "total_characters": len(extracted_text),
+            "heading_count": len(headings),
+            "passage_count": len(passages),
+            "concept_count": len(concepts),
+            "llm_used": False,
+        },
+    }

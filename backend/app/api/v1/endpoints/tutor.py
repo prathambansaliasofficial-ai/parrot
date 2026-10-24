@@ -36,24 +36,51 @@ router = APIRouter(prefix="/tutor", tags=["tutor"])
 def tutor_concepts(resource_id: str | None = Query(default=None)) -> dict:
     """Return concept blocks for a resource, if it has been processed."""
     from app.services.ingestion import process_ingestion
-    from app.services.topic_id import ConceptBlock
+    from app.services.topic_id import identify_topics
+    from app.services.demo_data import demo_resources, find_demo_resource
 
     # If resource_id is a demo resource, use the demo dataset
     if resource_id and resource_id.startswith("demo-"):
         resource = find_demo_resource(resource_id)
         if not resource:
             return {"concepts": [], "resource_id": resource_id, "status": "not_found"}
-        # Demo resources don't have processed concepts from uploads yet
+        # Run identification on the demo resource's passages
+        result = identify_topics(
+            resource_id=resource_id,
+            subject=resource.get("subject", ""),
+            category=resource.get("category", ""),
+            extracted_text=" ".join(p["content"] for p in resource.get("passages", [])),
+        )
         return {
-            "concepts": [],
+            "concepts": [
+                {
+                    "concept_title": c.concept_title,
+                    "explanation": c.explanation,
+                    "key_definitions": c.key_definitions,
+                    "important_facts": c.important_facts,
+                    "examples": c.examples,
+                    "prerequisites": c.prerequisites,
+                    "related_concepts": c.related_concepts,
+                    "keywords": c.keywords,
+                    "resource_id": c.resource_id,
+                    "page_numbers": c.page_numbers,
+                    "section_reference": c.section_reference,
+                    "subject": c.subject,
+                    "category": c.category,
+                    "processing_version": c.processing_version,
+                    "extraction_status": c.extraction_status,
+                }
+                for c in result["concepts"]
+            ],
             "resource_id": resource_id,
-            "status": "demo_no_ingestion",
+            "status": "demo",
             "passages": resource.get("passages", []),
         }
 
     # For uploaded resources, check if ingestion has been run
     from app.services.upload import _UPLOAD_DIR as UPLOAD_DIR
     from pathlib import Path
+    import json
 
     upload_dir = Path(UPLOAD_DIR)
     concepts: list[dict] = []
@@ -68,10 +95,30 @@ def tutor_concepts(resource_id: str | None = Query(default=None)) -> dict:
                 concept_count = marker.get("concept_count", 0)
                 extraction_errors = marker.get("extraction_errors", [])
                 if status == "ready" and concept_count > 0:
-                    # Concepts have been identified; return a summary
-                    # (Full concept blocks would be in the marker, but we provide a basic response)
+                    # Concepts have been identified — load the stored concept blocks
+                    concepts_raw = marker.get("concepts", [])
+                    concepts = [
+                        {
+                            "concept_title": c["concept_title"],
+                            "explanation": c["explanation"],
+                            "key_definitions": c.get("key_definitions", []),
+                            "important_facts": c.get("important_facts", []),
+                            "examples": c.get("examples", []),
+                            "prerequisites": c.get("prerequisites", []),
+                            "related_concepts": c.get("related_concepts", []),
+                            "keywords": c.get("keywords", []),
+                            "resource_id": c["resource_id"],
+                            "page_numbers": c.get("page_numbers", []),
+                            "section_reference": c.get("section_reference", ""),
+                            "subject": c.get("subject", ""),
+                            "category": c.get("category", ""),
+                            "processing_version": c.get("processing_version", "v1.0"),
+                            "extraction_status": c.get("extraction_status", "identified"),
+                        }
+                        for c in concepts_raw
+                    ]
                     return {
-                        "concepts": [],
+                        "concepts": concepts,
                         "resource_id": resource_id,
                         "status": "ready",
                         "concept_count": concept_count,
