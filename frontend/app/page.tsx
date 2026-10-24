@@ -8,7 +8,7 @@ export default function HomePage() {
     <header className="site-header">
       <Link className="brand" href="/" aria-label="Fresources home"><span className="brand-mark" aria-hidden="true"><i /><i /></span><span>Fresources</span></Link>
       <nav className="main-nav" aria-label="Main navigation"><Link className="active" href="/">Home</Link><Link href="/resources">Resources</Link><Link href="/hackmate">Hackmate</Link><Link href="/events">Events</Link></nav>
-      <div className="account-actions"><Link className="login-link" href="/dashboard">Log in</Link><Link className="account-link" href="/dashboard">Sign up</Link></div>
+      <div className="account-actions"><Link className="login-link" href="/login">Log in</Link><Link className="account-link" href="/signup">Sign up</Link></div>
     </header>
 
     <section className="hero">
