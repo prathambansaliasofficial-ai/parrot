@@ -18,9 +18,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <main className="auth-page">
-      <Link className="auth-brand brand" href="/" aria-label="Fresources home">
-        <span className="brand-mark" aria-hidden="true"><i /><i /></span><span>Fresources</span>
-      </Link>
       <div className="auth-orb auth-orb-one" aria-hidden="true" />
       <div className="auth-orb auth-orb-two" aria-hidden="true" />
       <section className="auth-shell" aria-labelledby="auth-title">
