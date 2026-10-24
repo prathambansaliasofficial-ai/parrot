@@ -28,6 +28,82 @@ from app.services.tutor import DEMO_NOTE_PREFIX
 
 router = APIRouter(prefix="/tutor", tags=["tutor"])
 
+# ---------------------------------------------------------------------------
+# Concept browsing endpoint
+# ---------------------------------------------------------------------------
+
+@router.get("/concepts")
+def tutor_concepts(resource_id: str | None = Query(default=None)) -> dict:
+    """Return concept blocks for a resource, if it has been processed."""
+    from app.services.ingestion import process_ingestion
+    from app.services.topic_id import ConceptBlock
+
+    # If resource_id is a demo resource, use the demo dataset
+    if resource_id and resource_id.startswith("demo-"):
+        resource = find_demo_resource(resource_id)
+        if not resource:
+            return {"concepts": [], "resource_id": resource_id, "status": "not_found"}
+        # Demo resources don't have processed concepts from uploads yet
+        return {
+            "concepts": [],
+            "resource_id": resource_id,
+            "status": "demo_no_ingestion",
+            "passages": resource.get("passages", []),
+        }
+
+    # For uploaded resources, check if ingestion has been run
+    from app.services.upload import _UPLOAD_DIR as UPLOAD_DIR
+    from pathlib import Path
+
+    upload_dir = Path(UPLOAD_DIR)
+    concepts: list[dict] = []
+
+    if resource_id:
+        # Look for a status marker file alongside the uploaded file
+        marker_path = upload_dir / (resource_id + ".json")
+        if marker_path.is_file():
+            try:
+                marker = json.loads(marker_path.read_text())
+                status = marker.get("status", "uploaded")
+                concept_count = marker.get("concept_count", 0)
+                extraction_errors = marker.get("extraction_errors", [])
+                if status == "ready" and concept_count > 0:
+                    # Concepts have been identified; return a summary
+                    # (Full concept blocks would be in the marker, but we provide a basic response)
+                    return {
+                        "concepts": [],
+                        "resource_id": resource_id,
+                        "status": "ready",
+                        "concept_count": concept_count,
+                        "extraction_errors": extraction_errors,
+                    }
+                elif status == "failed":
+                    return {
+                        "concepts": [],
+                        "resource_id": resource_id,
+                        "status": "failed",
+                        "extraction_errors": extraction_errors,
+                    }
+                else:
+                    # Uploaded but not yet processed
+                    return {
+                        "concepts": [],
+                        "resource_id": resource_id,
+                        "status": "uploaded" if status != "failed" else "failed",
+                        "extraction_errors": extraction_errors,
+                    }
+            except Exception:
+                pass
+
+    # No concepts available yet or resource not found
+    return {
+        "concepts": concepts,
+        "resource_id": resource_id or "",
+        "status": "no_data",
+    }
+
+import json
+
 TEACH_BACK_INSTRUCTION = (
     "I want you to teach this back to me: explain it in your own words, "
     "in 2–4 sentences, and I will check it against the course material."
