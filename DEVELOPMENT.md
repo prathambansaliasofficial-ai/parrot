@@ -5,30 +5,13 @@ This repository is a monorepo with separate processes for the website, API, and 
 ## Layout
 
 - `frontend/` — Next.js, React, TypeScript, and Tailwind CSS website.
-- `backend/` — FastAPI application API and Supabase access.
-- `agent/` — Python uAgent process. It is kept separate from the API so agent dependencies and runtime can be deployed independently.
-- `supabase/migrations/` — database schema migrations.
+- `backend/` — FastAPI catalog API and Supabase file/metadata ingestion.
+- `agent/` — Python uAgent process, kept separate from the API.
+- `supabase/migrations/` — database schema and DTU first-year demo catalog.
 
-The frontend calls the API. The API reads course/resource metadata from Supabase. The uAgent is the Fetch.ai agent runtime; ASI:1 and Agentverse credentials are configured only in server-side environment variables.
+## Backend setup
 
-## Requirements
-
-- Node.js 22 or newer (Next.js currently requires Node.js 20.9 or newer).
-- Python 3.12.
-- A Supabase project for resource queries. Credentials can be added later.
-
-## Frontend
-
-```sh
-cd frontend
-cp .env.example .env.local
-npm install
-npm run dev
-```
-
-Open http://localhost:3000.
-
-## API
+Copy the ignored local environment file and fill its blank server-only values:
 
 ```sh
 cd backend
@@ -41,32 +24,25 @@ fastapi dev app/main.py
 
 The API runs at http://localhost:8000. Health: http://localhost:8000/health. OpenAPI docs: http://localhost:8000/docs.
 
-The health route works before Supabase is configured. The resource list route returns a clear service-unavailable response until its server-side Supabase settings are present.
+Set `SUPABASE_URL`, a server-side `SUPABASE_SECRET_KEY` (or temporary legacy `SUPABASE_SERVICE_ROLE_KEY`), and a long random `INGESTION_API_KEY` in the local `backend/.env`. Keep these values out of the frontend, chat, and GitHub. A Supabase publishable key is not an admin/server credential.
 
-## Fetch.ai agent
+## Supabase catalog and storage
 
-Use a separate virtual environment from the API:
+Apply migrations in order in the Supabase SQL Editor:
 
-```sh
-cd agent
-cp .env.example .env
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
+1. `supabase/migrations/0001_initial_schema.sql`
+2. `supabase/migrations/0002_dtu_coe_first_year.sql`
 
-Set a private `UAGENT_SEED` locally before running the agent. Never use the example text as a seed or commit the generated value. Agentverse and ASI:1 keys can be added when they are issued.
+The second migration creates the ten DTU COE first-year course records visible on Fresources. It does not invent resource files or claim sample material is official. The private `course-resources` bucket stores uploaded PDFs and images; external resource links are stored as metadata in Postgres. The API does not save uploaded files to its local disk.
 
-## Supabase
+## API routes
 
-Apply the SQL migration in `supabase/migrations/` to the Supabase project before using the resources endpoint. Resource rows are private by default through Row Level Security; the API uses a server-side credential. Do not expose a service-role/secret key in frontend variables.
+- `GET /api/v1/academics` — college, branch, and course catalog.
+- `GET /api/v1/resources?course_id=...&category=...` — published resource metadata.
+- `GET /api/v1/resources/{id}/download` — short-lived signed link for a published private file.
+- `POST /api/v1/admin/resources/upload` — authenticated multipart PDF/image ingestion to Supabase Storage and Postgres.
+- `POST /api/v1/admin/resources/link` — authenticated external-link metadata ingestion. The API stores the URL but does not fetch it.
 
-The migration creates colleges, branches, courses, resources, and resource chunks. It includes the reference-site categories and a private `course-resources` storage bucket. Embedding dimensions and vector indexes should be selected once the embedding provider/model is finalized.
+Admin ingestion calls require an `X-Ingestion-Key` header matching the server's `INGESTION_API_KEY`. New items start unpublished; publish them only after verifying course/category and permission to use the material.
 
-## Environment files
-
-Each service has an `.env.example`. Copy it to the local filename shown above and fill in credentials locally. Do not send secrets in chat, commit them, or add them to `NEXT_PUBLIC_*` variables.
-
-## Current scaffold status
-
-The website currently contains a starter landing page, the API contains health and resource-list routes, and the agent contains a chat-protocol echo scaffold. Authentication, resource ingestion, grounded study behavior, and external integrations are follow-up implementation work.
+The resource categories include the seven Fresources tabs — books, assignments, notes, practicals, papers, playlists, experiments — plus syllabus, previous questions, and tests.

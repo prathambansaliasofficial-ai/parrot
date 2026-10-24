@@ -9,9 +9,10 @@ from app.core.config import get_settings
 @lru_cache
 def get_supabase_client() -> Client:
     settings = get_settings()
-    if not settings.supabase_url or not settings.supabase_service_role_key:
+    server_key = settings.supabase_server_key
+    if not settings.supabase_url or not server_key:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Supabase is not configured on the API server.",
+            detail="Supabase server credentials are not configured.",
         )
-    return create_client(settings.supabase_url, settings.supabase_service_role_key)
+    return create_client(settings.supabase_url, server_key)
