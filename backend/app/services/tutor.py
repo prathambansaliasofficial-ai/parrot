@@ -67,24 +67,73 @@ def _llm_explain(query: str, passages: list[dict], resource: dict | None) -> tup
 def explain(query: str, resource_id: str | None) -> tuple[str | None, list, bool, str | None]:
     """Return (explanation|None-if-ungrounded, sources, demo_mode, topic)."""
 
+    # First, try to retrieve relevant passages
     passages = retrieve_passages(query, resource_id=resource_id)
     resource = resource_for_topic(query, resource_id)
 
-    llm_result = _llm_explain(query, passages, resource)
-    if llm_result:
-        text, _ = llm_result
-        sources = [
-            {
-                "resource_id": p["resource_id"],
-                "title": p["title"],
-                "page": p["page"],
-                "snippet": _abbreviate(p["content"], 160),
-            }
-            for p in passages
-        ]
-        topic = resource["subject"] if resource else None
-        return text, sources, False, topic
+    # Also try to get concept blocks if the resource has been processed
+    from app.services.topic_id import identify_topics
+    from app.services.demo_data import find_demo_resource
+    concepts: list[dict] = []
+    concept_resource = None
 
+    if resource_id and resource_id.startswith("demo-"):
+        concept_resource = find_demo_resource(resource_id)
+        if concept_resource:
+            result = identify_topics(
+                resource_id=resource_id,
+                subject=concept_resource.get("subject", ""),
+                category=concept_resource.get("category", ""),
+                extracted_text=" ".join(p["content"] for p in concept_resource.get("passages", [])),
+            )
+            concepts = result["concepts"]
+
+    # If we have concept blocks, prefer using them for grounded explanations
+    from app.services.llm import llm_available
+    if concepts:
+        # Find the concept most relevant to the query (minimum relevance threshold)
+        import re as _re
+        query_tokens = {t for t in _re.findall(r"[\w']+", query.lower())}
+        best_concept = None
+        best_score = -1
+        for c in concepts:
+            concept_text = f"{c.concept_title} {c.explanation} { ' '.join(c.key_definitions) }"
+            concept_tokens = {t for t in _re.findall(r"[\w']+", concept_text.lower())}
+            score = len(query_tokens & concept_tokens)
+            if score > best_score:
+                best_score = score
+                best_concept = c
+
+        # Only use concept block if there's meaningful overlap with the query
+        if best_concept and best_score >= 1:
+            # Build explanation from the concept block
+            parts = [f"**{best_concept.concept_title}**"]
+            if best_concept.key_definitions:
+                parts.append("**Definitions:** " + "; ".join(best_concept.key_definitions))
+            if best_concept.important_facts:
+                parts.append("**Key facts:** " + "; ".join(best_concept.important_facts[:3]))
+            if best_concept.examples:
+                parts.append("**Example:** " + best_concept.examples[0])
+            if best_concept.keywords:
+                parts.append("**Related terms:** " + ", ".join(best_concept.keywords[:6]))
+            explanation_text = "\n\n".join(parts)
+
+            # Add source reference
+            sources = [
+                {
+                    "resource_id": best_concept.resource_id,
+                    "title": concept_resource["title"] if concept_resource else best_concept.concept_title,
+                    "page": best_concept.page_numbers[0] if best_concept.page_numbers else None,
+                    "snippet": best_concept.explanation,
+                }
+            ]
+            topic = best_concept.subject or resource["subject"] if resource else None
+            # Use demo_mode=True when no LLM key is configured, matching the original contract
+            demo = not llm_available()
+            prefixed = (DEMO_NOTE_PREFIX + explanation_text) if demo else explanation_text
+            return prefixed, sources, demo, topic
+
+    # Fall back to passage-based retrieval (original behavior)
     if not passages or not resource:
         return None, [], False, None
 
