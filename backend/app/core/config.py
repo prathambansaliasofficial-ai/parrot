@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     def supabase_server_key(self) -> str | None:
         return self.supabase_secret_key or self.supabase_service_role_key
 
+    # ASI:One / ASI:1 OpenAI-compatible credentials (server-side only).
+    asi_one_api_key: str | None = None
+    asi_one_base_url: str = "https://api.asi1.ai/v1"
+    asi_one_model: str = "asi1"
+
     @property
     def allowed_origins(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
