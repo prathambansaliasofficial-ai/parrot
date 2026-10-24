@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status, File, UploadFile, Form
 
 from app.core.config import get_settings
 from app.core.supabase import get_supabase_client
