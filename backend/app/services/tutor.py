@@ -18,7 +18,7 @@ from app.services import llm
 from app.services.demo_data import TEACHBACK_RUBRICS, demo_resources, find_demo_resource
 from app.services.retrieval import retrieve_passages, resource_for_topic
 
-DEMO_NOTE_PREFIX = "[Parrot demo mode — deterministic sample output, no LLM key configured]\n\n"
+DEMO_NOTE_PREFIX = "[Parrot demo mode - deterministic sample output, no LLM key configured]\n\n"
 
 
 def _abbreviate(content: str, limit: int = 220) -> str:
@@ -30,7 +30,6 @@ def _abbreviate(content: str, limit: int = 220) -> str:
 
 def _passage_snippet(passage: dict, query: str) -> str:
     """Return the part of a passage most related to the query, with sources intact."""
-
     tokens = {t for t in re.findall(r"[\w']+", query.lower())}
     sentences = re.split(r"(?<=[.!?])\s+", passage["content"])
     scored = [
@@ -46,7 +45,7 @@ def _llm_explain(query: str, passages: list[dict], resource: dict | None) -> tup
     if not passages or not resource:
         return None
     context = "\n\n".join(
-        f"[{p['title']} — page {p['page']}]\n{p['content']}" for p in passages
+        f"[{p['title']} - page {p['page']}]\n{p['content']}" for p in passages
     )
     system = (
         "You are Parrot, a study companion that teaches by asking questions. "
@@ -66,7 +65,6 @@ def _llm_explain(query: str, passages: list[dict], resource: dict | None) -> tup
 
 def explain(query: str, resource_id: str | None) -> tuple[str | None, list, bool, str | None]:
     """Return (explanation|None-if-ungrounded, sources, demo_mode, topic)."""
-
     # First, try to retrieve relevant passages
     passages = retrieve_passages(query, resource_id=resource_id)
     resource = resource_for_topic(query, resource_id)
@@ -140,8 +138,8 @@ def explain(query: str, resource_id: str | None) -> tuple[str | None, list, bool
     lead = passages[0]
     text = (
         f"**{lead['title']} (page {lead['page']})**\n\n"
-        + "\n\n".join(f"• {p['content']}" for p in passages)
-        + f"\n\nNow explain it back in your own words: what does the excerpt above mean, in 2–3 sentences?"
+        + "\n\n".join(f"… {p['content']}" for p in passages)
+        + "\n\nNow explain it back in your own words: what does the excerpt above mean, in 2-3 sentences?"
     )
     sources = [
         {
@@ -169,14 +167,84 @@ def next_quiz_question(resource_id: str, asked_ids: list[str] | None = None) -> 
 
 
 def quiz_question(resource_id: str, asked_ids: list[str] | None = None) -> tuple[dict, list, str] | None:
-    """Return (question_for_student, sources, topic) or None."""
-
+    """Return (question_for_student, sources, topic) or None.
+    
+    Falls back to concept-based question generation when the quiz bank has no 
+    remaining questions.
+    """
     resource = find_demo_resource(resource_id)
     if not resource:
         return None
     question = next_quiz_question(resource_id, asked_ids)
     if not question:
-        return None
+        # No quiz available from bank — fall back to concept-based generation
+        from app.services.topic_id import identify_topics as _identify_topics
+        from app.services.demo_data import find_demo_resource as _find_dr
+
+        concepts: list = []
+        concept_resource = None
+        if resource_id and resource_id.startswith("demo-"):
+            concept_resource = _find_dr(resource_id)
+            if concept_resource:
+                result = _identify_topics(
+                    resource_id=resource_id,
+                    subject=concept_resource.get("subject", ""),
+                    category=concept_resource.get("category", ""),
+                )
+                concepts = result["concepts"]
+
+        if concepts:
+            import re as _re
+            # Find the best concept matching the resource's subject area
+            best_concept = None
+            best_score = -1
+            for c in concepts:
+                concept_text = f"{c.concept_title} {c.explanation} { ' '.join(c.key_definitions) }"
+                # Score based on concept title relevance
+                score = len(set(_re.findall(r"[\w']+", concept_text.lower())) &
+                           set(_re.findall(r"[\w']+", resource.get("subject", "").lower())))
+                if score > best_score:
+                    best_score = score
+                    best_concept = c
+
+            if best_concept:
+                # Generate a quiz question from the concept
+                stem = f"Which of the following best describes {best_concept.concept_title}?"
+                options = [
+                    best_concept.key_definitions[0] if best_concept.key_definitions else "definition",
+                    best_concept.important_facts[0] if best_concept.important_facts else "fact",
+                    best_concept.keywords[0] if best_concept.keywords else "term",
+                    "other",
+                ]
+                # Shuffle options conceptually - keep first as correct-ish
+                difficulty = 2
+                question = {
+                    "id": f"concept-{best_concept.concept_title.lower().replace(' ', '-')}",
+                    "type": "short_answer",
+                    "stem": stem,
+                    "options": options,
+                    "difficulty": difficulty,
+                    "accepted_keywords": [best_concept.key_definitions[0]] if best_concept.key_definitions else [],
+                    "explanation": best_concept.explanation or f"{best_concept.concept_title} is covered in the resource material.",
+                }
+                first_passage = resource["passages"][0]
+                sources = [
+                    {
+                        "resource_id": resource["id"],
+                        "title": resource["title"],
+                        "page": first_passage["page"],
+                        "snippet": _abbreviate(first_passage["content"], 160),
+                    }
+                ]
+                student_question = {
+                    "id": question["id"],
+                    "type": question["type"],
+                    "stem": question["stem"],
+                    "options": question["options"],
+                    "difficulty": question["difficulty"],
+                }
+                return student_question, sources, resource["subject"]
+
     first_passage = resource["passages"][0]
     sources = [
         {
@@ -187,18 +255,17 @@ def quiz_question(resource_id: str, asked_ids: list[str] | None = None) -> tuple
         }
     ]
     student_question = {
-        "id": question["id"],
-        "type": question["type"],
-        "stem": question["stem"],
-        "options": question["options"],
-        "difficulty": question["difficulty"],
+        "id": question["id"] if question else f"q-{resource_id}",
+        "type": question["type"] if question else "short_answer",
+        "stem": question["stem"] if question else f"What is {resource.get('subject', 'the topic')}?",
+        "options": question["options"] if question else [],
+        "difficulty": question["difficulty"] if question else 2,
     }
     return student_question, sources, resource["subject"]
 
 
 def check_quiz_answer(question_id: str, answer: str) -> dict | None:
     """Grade a quiz answer; never expose grading internals to the caller."""
-
     for resource in demo_resources():
         for question in resource["quiz"]:
             if question["id"] == question_id:
@@ -216,8 +283,8 @@ def check_quiz_answer(question_id: str, answer: str) -> dict | None:
             selected = None
         correct = selected == question["answer_index"]
     else:
-        normalized = re.sub(r"[^a-z0-9 ]", "", answer.lower())
-        correct = all(
+        normalized = re.sub(r"[^a-z0-9 ]", " ", answer.lower())
+        correct = any(
             any(keyword in normalized for keyword in group)
             for group in question["accepted_keywords"]
         )
@@ -235,9 +302,9 @@ def check_quiz_answer(question_id: str, answer: str) -> dict | None:
     }
 
 
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------#
 # Teach-back evaluation
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------#
 
 _WORD_COUNT_MIN = 12
 
@@ -295,7 +362,8 @@ def _evaluate_demo(topic_rubric: dict, explanation: str) -> tuple[dict, bool]:
             "feedback": (
                 "I could not tell yet whether this explanation matches the material. "
                 "Write a couple more sentences covering what induces the emf and what "
-                "the direction of the induced current depends on." if correct_points else
+                "the direction of the induced current depends on." if correct_points
+                else
                 "Try again with a bit more detail using the ideas from the resource — "
                 "or ask me to re-explain the concept first."
             ),
@@ -318,7 +386,8 @@ def _evaluate_demo(topic_rubric: dict, explanation: str) -> tuple[dict, bool]:
                 + (f"In particular, {correct_points[0].split(', ')[0]} is right. " if correct_points else "")
                 + (
                     f"Still missing: {missing_points[0]}." if missing_points and not misconceptions
-                    else "" if not misconceptions
+                    else ""
+                    if not misconceptions
                     else f"One misconception to revisit: {misconceptions[0]}"
                 )
             ),
@@ -348,7 +417,7 @@ def evaluate_teachback(
     rubric_entry = None
     best_overlap = 0
     for rubric_topic, rubric in candidates:
-        overlap = 1 if _tokens_overlap(topic, rubric_topic) else 0
+        overlap = 1 if _tokens_overlap(rubric_topic, topic) else 0
         if overlap > best_overlap:
             rubric_entry, best_overlap, topic = rubric, overlap, rubric_topic
     if rubric_entry is None:
@@ -443,9 +512,9 @@ def _rubric_sources(rubric: dict, explanation: str) -> list[dict]:
     ]
 
 
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------#
 # Revision plans
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------#
 
 def revision_plan(session_id: str, resource_id: str | None, topic: str | None) -> tuple[dict, bool]:
     """Build a plan from recorded progress; falls back to resource topics in demo mode."""
@@ -469,7 +538,7 @@ def revision_plan(session_id: str, resource_id: str | None, topic: str | None) -
         items.append({
             "title": "Revisit misunderstood ideas",
             "detail": "Recurrence counts: " + (
-                "; ".join(f"{m} (×{c})" for m, c in sorted(seen_misconceptions.items(), key=lambda kv: -kv[1]))
+                "; ".join(f"{m} ({c})" for m, c in sorted(seen_misconceptions.items(), key=lambda kv: -kv[1]))
                 or "none recorded — keep practising"
             ),
         })
@@ -484,6 +553,16 @@ def revision_plan(session_id: str, resource_id: str | None, topic: str | None) -
                     "title": "Study next",
                     "detail": f"Re-read {resource['title']} (passages on pages {', '.join(str(p['page']) for p in resource['passages'])}).",
                 })
+                for quiz_q in resource["quiz"]:
+                    items.append({
+                        "title": f"Self-test: {quiz_q['stem'][:70]}…",
+                        "detail": f"Type {quiz_q['difficulty']}/3 difficulty — use Quiz me in Parrot to answer interactively.",
+                    })
+        else:
+            items.append({
+                "title": "Pick a resource first",
+                "detail": "Open any resource from the Resources page, then press Quiz me.",
+            })
     else:
         resource = resource_for_topic(topic or "", resource_id)
         if not resource and not resource_id and demo_resources():
@@ -504,3 +583,21 @@ def revision_plan(session_id: str, resource_id: str | None, topic: str | None) -
                 "detail": "Open any resource from the Resources page, then press Quiz me.",
             })
     return {"items": items}, demo_mode
+
+
+# ---------------------------------------------------------------------------#
+# URL-safe base64 for resource IDs
+# ---------------------------------------------------------------------------#
+
+def _b64url_encode(value: str) -> str:
+    import base64
+    return base64.urlsafe_b64encode(value.encode()).decode().rstrip("=")
+
+
+def _b64url_decode(value: str) -> str:
+    import base64
+    # Add padding if needed
+    padding = 4 - len(value) % 4
+    if padding != 4:
+        value += "=" * padding
+    return base64.urlsafe_b64decode(value).decode()
