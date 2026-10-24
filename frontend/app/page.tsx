@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const resourceCategories = [
   "Books",
   "Assignments",
@@ -13,17 +15,17 @@ export default function HomePage() {
   return (
     <main>
       <header className="site-header">
-        <a className="brand" href="/" aria-label="Fresources home">
+        <Link className="brand" href="/" aria-label="Fresources home">
           <span className="brand-mark" aria-hidden="true">F</span>
           <span>Fresources</span>
-        </a>
+        </Link>
         <nav className="main-nav" aria-label="Main navigation">
-          <a className="active" href="/">Home</a>
-          <a href="/events">Events</a>
-          <a href="/hackmate">Hackmate</a>
-          <a href="/resources">Resources</a>
+          <Link className="active" href="/">Home</Link>
+          <Link href="/events">Events</Link>
+          <Link href="/hackmate">Hackmate</Link>
+          <Link href="/resources">Resources</Link>
         </nav>
-        <a className="account-link" href="/dashboard">Sign in</a>
+        <Link className="account-link" href="/dashboard">Sign in</Link>
       </header>
 
       <section className="hero">
@@ -39,7 +41,7 @@ export default function HomePage() {
             place.
           </p>
           <div className="hero-actions">
-            <a className="button button-primary" href="/resources">Explore resources</a>
+            <Link className="button button-primary" href="/resources">Explore resources</Link>
             <a className="button button-secondary" href="#parrot">Meet Parrot AI</a>
           </div>
         </div>
@@ -64,15 +66,15 @@ export default function HomePage() {
             <p className="eyebrow">Find what you need</p>
             <h2>Resources for your course</h2>
           </div>
-          <a href="/resources">Browse all resources <span aria-hidden="true">↗</span></a>
+          <Link href="/resources">Browse all resources <span aria-hidden="true">↗</span></Link>
         </div>
         <div className="category-grid">
           {resourceCategories.map((category) => (
-            <a className="category-card" href="/resources" key={category}>
+            <Link className="category-card" href="/resources" key={category}>
               <span className="category-icon" aria-hidden="true">{category.slice(0, 1)}</span>
               <span>{category}</span>
               <span className="category-arrow" aria-hidden="true">↗</span>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
@@ -86,18 +88,18 @@ export default function HomePage() {
             feedback to help you see what you understand and what to revisit.
           </p>
         </div>
-        <a className="button button-primary" href="/study">Start a study session</a>
+        <Link className="button button-primary" href="/study">Start a study session</Link>
       </section>
 
       <footer className="site-footer">
-        <a className="brand" href="/">
+        <Link className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">F</span>
           <span>Fresources</span>
-        </a>
+        </Link>
         <p>College learning resources, with Parrot AI alongside your studies.</p>
         <div className="footer-links">
-          <a href="/events">Events</a>
-          <a href="/resources">Resources</a>
+          <Link href="/events">Events</Link>
+          <Link href="/resources">Resources</Link>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
         </div>

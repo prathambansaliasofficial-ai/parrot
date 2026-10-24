@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ParrotProvider from "@/components/parrot/ParrotProvider";
+import ParrotWidget from "@/components/parrot/ParrotWidget";
 
 export const metadata: Metadata = {
   title: "Fresources | Study smarter with Parrot AI",
@@ -14,7 +16,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ParrotProvider>
+          <ParrotWidget />
+        </ParrotProvider>
+      </body>
     </html>
   );
 }
