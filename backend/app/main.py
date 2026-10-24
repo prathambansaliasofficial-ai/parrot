@@ -8,8 +8,8 @@ settings = get_settings()
 
 app = FastAPI(
     title=settings.app_name,
-    version="0.1.0",
-    description="Backend API for FreeResources.in and Parrot AI.",
+    version="0.2.0",
+    description="FreeResources catalog API and Supabase resource ingestion.",
 )
 
 app.add_middleware(
@@ -17,7 +17,7 @@ app.add_middleware(
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Ingestion-Key"],
 )
 
 app.include_router(api_router)

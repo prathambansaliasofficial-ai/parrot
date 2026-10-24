@@ -12,6 +12,7 @@ class ResourceRead(BaseModel):
     category: str
     description: str | None = None
     storage_path: str | None = None
+<<<<<<< HEAD
 
 
 class ResourceMetadata(BaseModel):
@@ -33,3 +34,10 @@ class ResourceDetail(ResourceRead):
     metadata: ResourceMetadata | None = None
     passages: list[ResourcePassage] = []
     source: Literal["supabase", "demo"] = "demo"
+=======
+    source_url: str | None = None
+    original_file_name: str | None = None
+    content_type: str | None = None
+    file_size_bytes: int | None = None
+    is_demo: bool = False
+>>>>>>> 48299e259552bcd96d9e5997f35bae5d20ab9192

@@ -14,7 +14,16 @@ class Settings(BaseSettings):
     environment: str = "development"
     cors_origins: str = "http://localhost:3000"
     supabase_url: str | None = None
+    # Prefer the new secret key. Keep legacy service_role support during migration.
+    supabase_secret_key: str | None = None
     supabase_service_role_key: str | None = None
+    supabase_storage_bucket: str = "course-resources"
+    ingestion_api_key: str | None = None
+    max_upload_size_mb: int = 50
+
+    @property
+    def supabase_server_key(self) -> str | None:
+        return self.supabase_secret_key or self.supabase_service_role_key
 
     # ASI:One / ASI:1 OpenAI-compatible credentials (server-side only).
     asi_one_api_key: str | None = None
