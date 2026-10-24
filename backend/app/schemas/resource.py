@@ -15,3 +15,4 @@ class ResourceRead(BaseModel):
     content_type: str | None = None
     file_size_bytes: int | None = None
     is_demo: bool = False
+    processing_status: str = "pending"
