@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BookOpen, Github, Linkedin, Mail, Sparkles, Twitter, Youtube } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ interface ResourceRow {
 
 async function getResources(): Promise<{ rows: ResourceRow[]; error?: string }> {
   try {
-    const response = await fetch(`${API_BASE}/api/v1/resources`, {
+    const response = await fetch(new URL("/api/v1/resources", API_BASE), {
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) return { rows: [], error: `The study-resources API responded ${response.status}.` };

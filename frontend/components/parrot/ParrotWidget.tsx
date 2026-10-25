@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParrot } from "./ParrotContext";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 interface SourceRef {
   resource_id: string;
@@ -101,7 +101,7 @@ export default function ParrotWidget() {
         setTurns((prev) => [...prev, { role: "student", text: trimmed }]);
       }
       try {
-        const response = await fetch(`${API_BASE}/api/v1/tutor/message`, {
+        const response = await fetch(`${API_BASE}/v1/tutor/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -129,7 +129,7 @@ export default function ParrotWidget() {
       } catch (exc) {
         setError(
           `Could not reach the Parrot backend (${String(exc instanceof Error ? exc.message : exc)}). ` +
-            "Is the FastAPI API running on " + API_BASE + "?",
+            "Check that the FastAPI API is available at " + API_BASE + ".",
         );
       } finally {
         setBusy(false);
@@ -143,7 +143,7 @@ export default function ParrotWidget() {
       setBusy(true);
       setTurns((prev) => [...prev, { role: "student", text: answer }]);
       try {
-        const response = await fetch(`${API_BASE}/api/v1/tutor/quiz/answer`, {
+        const response = await fetch(`${API_BASE}/v1/tutor/quiz/answer`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question_id: question.id, answer }),
@@ -164,7 +164,7 @@ export default function ParrotWidget() {
           ),
         );
         askedIds.current = [...askedIds.current, question.id];
-        const next = await fetch(`${API_BASE}/api/v1/tutor/message`, {
+        const next = await fetch(`${API_BASE}/v1/tutor/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -203,7 +203,7 @@ export default function ParrotWidget() {
     setTurns((prev) => [...prev, { role: "student", text: explanation }]);
     setBusy(true);
     try {
-      const response = await fetch(`${API_BASE}/api/v1/tutor/evaluate`, {
+      const response = await fetch(`${API_BASE}/v1/tutor/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

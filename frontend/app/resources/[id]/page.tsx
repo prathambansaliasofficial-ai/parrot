@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import OpenParrotButton from "@/components/parrot/OpenParrotButton";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +26,12 @@ interface ResourceDetail {
 
 async function getResource(id: string): Promise<ResourceDetail | null> {
   try {
-    const response = await fetch(`${API_BASE}/api/v1/resources/${encodeURIComponent(id)}`, {
-      signal: AbortSignal.timeout(8000),
-    });
+    const response = await fetch(
+      new URL(`/api/v1/resources/${encodeURIComponent(id)}`, API_BASE),
+      {
+        signal: AbortSignal.timeout(8000),
+      },
+    );
     if (!response.ok) return null;
     return (await response.json()) as ResourceDetail;
   } catch {

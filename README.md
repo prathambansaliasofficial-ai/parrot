@@ -11,6 +11,22 @@
 - **Hackathon:** Fetch-A-Thon 3.0 — powered by ASI:1
 - **Demo, presentation, team, and additional resources:** links will be added here
 
+## Vercel deployment
+
+The root [`vercel.json`](./vercel.json) configures `backend` (FastAPI) and
+`frontend` (Next.js) as services. Requests under `/api/` are routed to the
+backend; all other public paths go to the frontend. The frontend's
+`BACKEND_URL` service binding is used for server-rendered resource requests,
+while browser requests use the public `/api/` route.
+
+The Fetch.ai uAgent in `agent/` is a persistent process, not a Vercel request
+handler, so it is not included as a Vercel service. If hosted separately, set
+its `PARROT_API_BASE_URL` to this deployment's base URL. Configure the backend's
+server-side secrets in Vercel. Leave `NEXT_PUBLIC_API_BASE_URL` unset (or set it
+to `/api`) so browser calls use the public rewrite, and set `CORS_ORIGINS` to
+include the deployed frontend origin (as well as `http://localhost:3000` when
+needed).
+
 ## The problem
 
 Students often prepare for an exam by collecting notes, previous questions, assignments, reference books, tests, and syllabus documents from different places. To get AI help, they may then have to download those resources and upload them again to another product. That breaks the study flow and makes it harder to keep an AI tutor focused on the material and exam pattern of a particular college or university.
