@@ -1,0 +1,24 @@
+node_modules
+.next
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Local database and acquired documents
+db/*.db
+db/*.db-wal
+db/*.db-shm
+storage/
+
+# Local PDF tooling (Ghostscript build used in development)
+.tools/
+
+# Secrets and logs
+.env
+.env.local
+*.log
+
+# Cloudflare
+.wrangler/
+# SQLite -> D1 export contains account holders' email addresses; never commit it
+db/d1-data/
+db/*.backup-*.db

@@ -1,0 +1,147 @@
+/**
+ * Cloudflare configuration for the FreeResources acquisition platform.
+ *
+ * IMPORTANT: nothing here is deployed. `database_id` values are placeholders
+ * that must be replaced with the ids returned by `wrangler d1 create` in YOUR
+ * account (see docs/CLOUDFLARE.md). All resources are named `freeresources-*`
+ * and must never share a bucket, database, queue or worker with PG Hunter.
+ *
+ * The Next.js site is NOT served by this Worker. It runs through
+ * @opennextjs/cloudflare (see docs/ARCHITECTURE.md). This Worker owns the
+ * durable acquisition side: queues, workflow, cron, R2 and container calls.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "freeresources-acquisition",
+  "main": "workers/acquisition/src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "workers_dev": true,
+  "preview_urls": true,
+
+
+  "vars": {
+    "ENVIRONMENT": "development",
+    // Internal shared secret check placeholder. Real values go through
+    // `wrangler secret put`, never into this file.
+    "ACQUISITION_UNIVERSITY_SLUG": "aktu",
+    "ACQUISITION_MAX_CANDIDATES_PER_RUN": "5",
+    "ACQUISITION_MAX_DOWNLOAD_MB": "40"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "freeresources-dev",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "db/d1"
+    }
+  ],
+
+  "r2_buckets": [
+    { "binding": "R2_ORIGINALS", "bucket_name": "freeresources-originals-dev" },
+    { "binding": "R2_DERIVATIVES", "bucket_name": "freeresources-derivatives-dev" },
+    { "binding": "R2_PUBLISHED", "bucket_name": "freeresources-published-dev" }
+  ],
+
+  "queues": {
+    "producers": [
+      { "binding": "DISCOVERY_QUEUE", "queue": "freeresources-discovery-dev" },
+      { "binding": "INGESTION_QUEUE", "queue": "freeresources-ingestion-dev" }
+    ],
+    "consumers": [
+      {
+        "queue": "freeresources-discovery-dev",
+        "max_batch_size": 5,
+        "max_batch_timeout": 20,
+        "max_retries": 3,
+        "dead_letter_queue": "freeresources-dead-letter-dev",
+        "max_concurrency": 2
+      },
+      {
+        "queue": "freeresources-ingestion-dev",
+        "max_batch_size": 5,
+        "max_batch_timeout": 10,
+        "max_retries": 4,
+        "dead_letter_queue": "freeresources-dead-letter-dev",
+        "max_concurrency": 3
+      }
+    ]
+  },
+
+  "workflows": [
+    {
+      "name": "freeresources-ingestion-dev",
+      "binding": "INGESTION_WORKFLOW",
+      "class_name": "IngestionWorkflow"
+    }
+  ],
+
+  // Cloudflare Containers live in their own Worker (wrangler.pdf.jsonc). The
+  // acquisition Worker reaches them through this service binding, so it starts
+  // and runs even when Containers are unavailable.
+  "services": [
+    { "binding": "PDF_PROCESSOR", "service": "freeresources-pdf-container" }
+  ],
+
+  // Daily coverage-gap discovery, weekly source recheck.
+  "triggers": {
+    "crons": ["0 2 * * *", "0 3 * * 1"]
+  },
+
+  "env": {
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production",
+        "ACQUISITION_UNIVERSITY_SLUG": "aktu",
+        "ACQUISITION_MAX_CANDIDATES_PER_RUN": "10",
+        "ACQUISITION_MAX_DOWNLOAD_MB": "40"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "freeresources-production",
+          "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+          "migrations_dir": "db/d1"
+        }
+      ],
+      "r2_buckets": [
+        { "binding": "R2_ORIGINALS", "bucket_name": "freeresources-originals" },
+        { "binding": "R2_DERIVATIVES", "bucket_name": "freeresources-derivatives" },
+        { "binding": "R2_PUBLISHED", "bucket_name": "freeresources-published" }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "DISCOVERY_QUEUE", "queue": "freeresources-discovery" },
+          { "binding": "INGESTION_QUEUE", "queue": "freeresources-ingestion" }
+        ],
+        "consumers": [
+          {
+            "queue": "freeresources-discovery",
+            "max_batch_size": 5,
+            "max_batch_timeout": 20,
+            "max_retries": 3,
+            "dead_letter_queue": "freeresources-dead-letter",
+            "max_concurrency": 2
+          },
+          {
+            "queue": "freeresources-ingestion",
+            "max_batch_size": 5,
+            "max_batch_timeout": 10,
+            "max_retries": 4,
+            "dead_letter_queue": "freeresources-dead-letter",
+            "max_concurrency": 3
+          }
+        ]
+      },
+      "workflows": [
+        {
+          "name": "freeresources-ingestion",
+          "binding": "INGESTION_WORKFLOW",
+          "class_name": "IngestionWorkflow"
+        }
+      ]
+    }
+  }
+}

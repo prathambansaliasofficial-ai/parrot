@@ -1,0 +1,483 @@
+{
+  "generatedAt": "2026-11-20T06:36:59.086Z",
+  "assetCount": 9,
+  "mismatchCount": 3,
+  "findings": [
+    {
+      "assetId": "ea4236d3-7a9d-40a2-adf3-e3dccb8c9d1b",
+      "sha256": "5fc7e16b670be98341f9583a6a4c19a2fac71e4ddcea7eac9e83c96284fbfc1d",
+      "storedFilename": "CSE_Stream_AKTU_UG_B_Tech__Course_Structure_Syllabus_Evaluation_Scheme_Hyperlinked.pdf",
+      "sourceFilename": "CSE_Stream_AKTU_UG_B_Tech__Course_Structure_Syllabus_Evaluation_Scheme_Hyperlinked.pdf",
+      "sourceUrl": "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2627/CSE_Stream_AKTU_UG_B_Tech__Course_Structure_Syllabus_Evaluation_Scheme_Hyperlinked.pdf",
+      "sizeBytes": 2029459,
+      "pageCount": 100,
+      "textSource": "stored",
+      "detectedType": "course_structure",
+      "detectedTypeLabel": "Course structure / scheme of teaching",
+      "confidence": 0.95,
+      "coversSemesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "subjectCodeCount": 43,
+      "subjectCodes": [
+        "AAC101",
+        "AAC201",
+        "AAI101",
+        "AAI201",
+        "AAS101E",
+        "AAS102D",
+        "AAS103D",
+        "AAS104",
+        "AAS105",
+        "AAS151",
+        "AAS152D",
+        "AAS153",
+        "AAS201",
+        "AAS201E",
+        "AAS202D",
+        "AAS203D",
+        "AAS204",
+        "AAS205",
+        "AAS251",
+        "AAS252D",
+        "AAS253",
+        "ACE151E",
+        "ACE251E",
+        "ACS101",
+        "ACS201",
+        "AEC101A",
+        "AEC151A",
+        "AEC201A",
+        "AEC251A",
+        "AEE101A",
+        "AEE151A",
+        "AEE201A",
+        "AEE251A",
+        "AGP151",
+        "AGP251",
+        "AID151",
+        "AID251",
+        "AME101A",
+        "AME201A",
+        "AS104"
+      ],
+      "unitCount": 4,
+      "evidence": [
+        "Contains a scheme-of-teaching / course-structure table.",
+        "43 distinct subject code(s) printed in the document.",
+        "4 unit heading(s) detected.",
+        "Semester coverage detected: 1, 2, 3, 4.",
+        "Explicitly refers to a programme stream.",
+        "Lists multiple branches/subjects in one scheme."
+      ],
+      "storedDocumentType": "course_structure",
+      "linkedResources": [
+        {
+          "id": "471549c5-d70f-4409-bf27-dc34f293d25f",
+          "slug": "aktu-btech-cse-stream-first-year-scheme-syllabus-2026-27",
+          "title": "AKTU B.Tech CSE Stream — First Year Scheme & Syllabus (2026-27)",
+          "semester": 1,
+          "status": "published",
+          "subject_name": "First Year CSE Stream (Common)",
+          "subject_code": null,
+          "branch_slug": null
+        }
+      ],
+      "syllabusVersions": [
+        {
+          "id": "611abbea-8730-4656-97d8-3c32303251f4",
+          "status": "in_review",
+          "subject_name": null,
+          "version_label": "AKTU B.Tech CSE Stream — First Year Scheme & Syllabus 2026-27"
+        }
+      ],
+      "mismatches": []
+    },
+    {
+      "assetId": "311a0c89-6e68-47cf-8782-2597290d39e0",
+      "sha256": "60c7552275c98067c31af3bec0c55ec1b3bbaf771520532207e4eaeb7fb5ff7b",
+      "storedFilename": "B.Tech _Advanced Communication Technology_4th Year_2026-27.pdf",
+      "sourceFilename": "B.Tech _Advanced Communication Technology_4th Year_2026-27.pdf",
+      "sourceUrl": "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2627/B.Tech%20_Advanced%20Communication%20Technology_4th%20Year_2026-27.pdf",
+      "sizeBytes": 393756,
+      "pageCount": 14,
+      "textSource": "stored",
+      "detectedType": "course_structure",
+      "detectedTypeLabel": "Course structure / scheme of teaching",
+      "confidence": 0.85,
+      "coversSemesters": [
+        7,
+        8
+      ],
+      "subjectCodeCount": 10,
+      "subjectCodes": [
+        "BEC071",
+        "BEC073",
+        "BEC074",
+        "BEC075",
+        "BEC701",
+        "BEC751",
+        "BEC752",
+        "BEC753",
+        "BEC754",
+        "BEC851"
+      ],
+      "unitCount": 0,
+      "evidence": [
+        "Contains a scheme-of-teaching / course-structure table.",
+        "10 distinct subject code(s) printed in the document.",
+        "Semester coverage detected: 7, 8.",
+        "Lists multiple branches/subjects in one scheme."
+      ],
+      "storedDocumentType": "course_structure",
+      "linkedResources": [],
+      "syllabusVersions": [],
+      "mismatches": []
+    },
+    {
+      "assetId": "003b00ee-f08d-444a-ba95-7d90424a59f6",
+      "sha256": "7bd19c9c84c4b01b638b276d777f221842da1875fdcbbd5b469d9c9a05cbd6d6",
+      "storedFilename": "B.Tech_VLSI_4th Year Syllabus_2026-27.pdf",
+      "sourceFilename": "B.Tech_VLSI_4th Year Syllabus_2026-27.pdf",
+      "sourceUrl": "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2627/B.Tech_VLSI_4th%20Year%20Syllabus_2026-27.pdf",
+      "sizeBytes": 464396,
+      "pageCount": 15,
+      "textSource": "stored",
+      "detectedType": "course_structure",
+      "detectedTypeLabel": "Course structure / scheme of teaching",
+      "confidence": 0.85,
+      "coversSemesters": [
+        7,
+        8
+      ],
+      "subjectCodeCount": 10,
+      "subjectCodes": [
+        "BEC074",
+        "BEC076",
+        "BEC077",
+        "BEC078",
+        "BEC701",
+        "BEC751",
+        "BEC752",
+        "BEC753",
+        "BEC754",
+        "BEC851"
+      ],
+      "unitCount": 0,
+      "evidence": [
+        "Contains a scheme-of-teaching / course-structure table.",
+        "10 distinct subject code(s) printed in the document.",
+        "Semester coverage detected: 7, 8.",
+        "Lists multiple branches/subjects in one scheme."
+      ],
+      "storedDocumentType": "course_structure",
+      "linkedResources": [],
+      "syllabusVersions": [],
+      "mismatches": []
+    },
+    {
+      "assetId": "4075feaf-5307-4575-a681-c511f8f0b98f",
+      "sha256": "d3bc0b8788acf1fc6037f75eedc422c2ee2fb44a7bbfd8eb9cd605b24c9e9f14",
+      "storedFilename": "B.Tech_Mining Engineering_4th Year_Syllabus_2026-27.pdf",
+      "sourceFilename": "B.Tech_Mining Engineering_4th Year_Syllabus_2026-27.pdf",
+      "sourceUrl": "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2627/B.Tech_Mining%20Engineering_4th%20Year_Syllabus_2026-27.pdf",
+      "sizeBytes": 532314,
+      "pageCount": 19,
+      "textSource": "stored",
+      "detectedType": "course_structure",
+      "detectedTypeLabel": "Course structure / scheme of teaching",
+      "confidence": 0.85,
+      "coversSemesters": [],
+      "subjectCodeCount": 10,
+      "subjectCodes": [
+        "BMN071",
+        "BMN072",
+        "BMN073",
+        "BMN701",
+        "BMN751",
+        "BMN752",
+        "BMN753",
+        "BMN754",
+        "BMN851",
+        "MN071"
+      ],
+      "unitCount": 4,
+      "evidence": [
+        "Contains a scheme-of-teaching / course-structure table.",
+        "10 distinct subject code(s) printed in the document.",
+        "4 unit heading(s) detected.",
+        "Lists multiple branches/subjects in one scheme."
+      ],
+      "storedDocumentType": "course_structure",
+      "linkedResources": [],
+      "syllabusVersions": [],
+      "mismatches": []
+    },
+    {
+      "assetId": "23bbb619-f010-473d-af16-c40c76e9d1a1",
+      "sha256": "8402ea392ed3dfdfe166ccc41fd603e0e1f51f988b45cea230ed1b23fd9e69d6",
+      "storedFilename": "B_Tech_Bioinformatics_Third_Year_Syllabus_2026-27_V1.pdf",
+      "sourceFilename": "B_Tech_Bioinformatics_Third_Year_Syllabus_2026-27_V1.pdf",
+      "sourceUrl": "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2627/B_Tech_Bioinformatics_Third_Year_Syllabus_2026-27_V1.pdf",
+      "sizeBytes": 510567,
+      "pageCount": 45,
+      "textSource": "stored",
+      "detectedType": "course_structure",
+      "detectedTypeLabel": "Course structure / scheme of teaching",
+      "confidence": 0.95,
+      "coversSemesters": [
+        5,
+        6
+      ],
+      "subjectCodeCount": 31,
+      "subjectCodes": [
+        "BBI051",
+        "BBI052",
+        "BBI053",
+        "BBI054",
+        "BBI055",
+        "BBI056",
+        "BBI057",
+        "BBI058",
+        "BBI061",
+        "BBI062",
+        "BBI063",
+        "BBI064",
+        "BBI501",
+        "BBI502",
+        "BBI503",
+        "BBI551",
+        "BBI552",
+        "BBI553",
+        "BBI601",
+        "BBI602",
+        "BBI603",
+        "BBI651",
+        "BBI652",
+        "BBI653",
+        "BCC551",
+        "BNC501",
+        "BNC502",
+        "BNC601",
+        "BNC602",
+        "BOE060",
+        "BOE069"
+      ],
+      "unitCount": 0,
+      "evidence": [
+        "Contains a scheme-of-teaching / course-structure table.",
+        "31 distinct subject code(s) printed in the document.",
+        "Semester coverage detected: 5, 6.",
+        "Lists multiple branches/subjects in one scheme."
+      ],
+      "storedDocumentType": "course_structure",
+      "linkedResources": [],
+      "syllabusVersions": [],
+      "mismatches": []
+    },
+    {
+      "assetId": "dd5c6d5d-857c-47e1-9d06-26149a5d6f60",
+      "sha256": "a212b3a8e33448d348614501043129f065654da85dac5e189c76d42455244e40",
+      "storedFilename": "B.Tech_2nd_Yr_Cyber Security_Syllabus_2026-27.pdf",
+      "sourceFilename": "B.Tech_2nd_Yr_Cyber Security_Syllabus_2026-27.pdf",
+      "sourceUrl": "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2627/B.Tech_2nd_Yr_Cyber%20Security_Syllabus_2026-27.pdf",
+      "sizeBytes": 853852,
+      "pageCount": 24,
+      "textSource": "stored",
+      "detectedType": "course_structure",
+      "detectedTypeLabel": "Course structure / scheme of teaching",
+      "confidence": 0.95,
+      "coversSemesters": [
+        3,
+        4
+      ],
+      "subjectCodeCount": 26,
+      "subjectCodes": [
+        "BAS301",
+        "BAS303",
+        "BAS401",
+        "BAS403",
+        "BCC301",
+        "BCC302",
+        "BCC351",
+        "BCC401",
+        "BCC402",
+        "BCS301",
+        "BCS302",
+        "BCS351",
+        "BCS352",
+        "BCS353",
+        "BCS401",
+        "BCS403",
+        "BCS451",
+        "BCS452",
+        "BCS453",
+        "BCY301",
+        "BCY401",
+        "BCY451",
+        "BVA451",
+        "BVA452",
+        "BVE401",
+        "SHA512"
+      ],
+      "unitCount": 0,
+      "evidence": [
+        "Contains a scheme-of-teaching / course-structure table.",
+        "26 distinct subject code(s) printed in the document.",
+        "Semester coverage detected: 3, 4.",
+        "Explicitly refers to a programme stream.",
+        "Lists multiple branches/subjects in one scheme."
+      ],
+      "storedDocumentType": "course_structure",
+      "linkedResources": [],
+      "syllabusVersions": [],
+      "mismatches": []
+    },
+    {
+      "assetId": "36755926-552b-4568-b29d-5375db32a17e",
+      "sha256": "28f686ef4b458611362b0bf51d54eb419cc0043729b9c90ae7c28cf4bca82db8",
+      "storedFilename": "syllabus-ds.pdf",
+      "sourceFilename": "syllabus-ds.pdf",
+      "sourceUrl": "http://localhost:4111/syllabus-ds.pdf",
+      "sizeBytes": 1653,
+      "pageCount": 3,
+      "textSource": "stored",
+      "detectedType": "subject_syllabus",
+      "detectedTypeLabel": "Subject-specific syllabus",
+      "confidence": 0.9,
+      "coversSemesters": [
+        3
+      ],
+      "subjectCodeCount": 1,
+      "subjectCodes": [
+        "BCS301"
+      ],
+      "unitCount": 4,
+      "evidence": [
+        "1 distinct subject code(s) printed in the document.",
+        "4 unit heading(s) detected.",
+        "Semester coverage detected: 3."
+      ],
+      "storedDocumentType": "subject_syllabus",
+      "linkedResources": [
+        {
+          "id": "ec1a2a49-fa3d-48a0-93e8-8de92791cf7e",
+          "slug": "first-year-cse-stream-common-syllabus",
+          "title": "First Year CSE Stream (Common) — Syllabus",
+          "semester": 1,
+          "status": "published",
+          "subject_name": "First Year CSE Stream (Common)",
+          "subject_code": null,
+          "branch_slug": null
+        }
+      ],
+      "syllabusVersions": [],
+      "mismatches": [
+        "published under semester 1 but the document covers semester(s) 3"
+      ]
+    },
+    {
+      "assetId": "ba479bc8-d4c9-40c5-8f74-72218b003364",
+      "sha256": "fbf294cb30dcc593a584c4080517bccc44e61fe60882b53079f4f182f9912b47",
+      "storedFilename": "syllabus-ds.pdf",
+      "sourceFilename": "syllabus-ds.pdf",
+      "sourceUrl": "http://localhost:4111/syllabus-ds.pdf",
+      "sizeBytes": 1654,
+      "pageCount": 3,
+      "textSource": "stored",
+      "detectedType": "subject_syllabus",
+      "detectedTypeLabel": "Subject-specific syllabus",
+      "confidence": 0.9,
+      "coversSemesters": [
+        3
+      ],
+      "subjectCodeCount": 1,
+      "subjectCodes": [
+        "BCS301"
+      ],
+      "unitCount": 4,
+      "evidence": [
+        "1 distinct subject code(s) printed in the document.",
+        "4 unit heading(s) detected.",
+        "Semester coverage detected: 3."
+      ],
+      "storedDocumentType": "subject_syllabus",
+      "linkedResources": [
+        {
+          "id": "79e8404a-5723-4516-bdd9-801439ba6e88",
+          "slug": "first-year-cse-stream-common-syllabus-2",
+          "title": "First Year CSE Stream (Common) — Syllabus",
+          "semester": 1,
+          "status": "published",
+          "subject_name": "First Year CSE Stream (Common)",
+          "subject_code": null,
+          "branch_slug": null
+        }
+      ],
+      "syllabusVersions": [
+        {
+          "id": "d4f028bd-1155-413f-bdb8-42bba5dbe702",
+          "status": "verified",
+          "subject_name": "First Year CSE Stream (Common)",
+          "version_label": "Unlabelled version"
+        }
+      ],
+      "mismatches": [
+        "published under semester 1 but the document covers semester(s) 3"
+      ]
+    },
+    {
+      "assetId": "dd7a237a-f052-4af7-b975-387e4aaab218",
+      "sha256": "af35b136eecef016a12c0fdff57275a8f431a4b2d95822e54c8fc4d96161df8d",
+      "storedFilename": "syllabus-ds.pdf",
+      "sourceFilename": "syllabus-ds.pdf",
+      "sourceUrl": "http://localhost:4111/syllabus-ds.pdf",
+      "sizeBytes": 1651,
+      "pageCount": 3,
+      "textSource": "stored",
+      "detectedType": "subject_syllabus",
+      "detectedTypeLabel": "Subject-specific syllabus",
+      "confidence": 0.9,
+      "coversSemesters": [
+        3
+      ],
+      "subjectCodeCount": 1,
+      "subjectCodes": [
+        "BCS301"
+      ],
+      "unitCount": 4,
+      "evidence": [
+        "1 distinct subject code(s) printed in the document.",
+        "4 unit heading(s) detected.",
+        "Semester coverage detected: 3."
+      ],
+      "storedDocumentType": "subject_syllabus",
+      "linkedResources": [
+        {
+          "id": "7384b6f9-79b0-404b-be56-237030227dc8",
+          "slug": "first-year-cse-stream-common-syllabus-3",
+          "title": "First Year CSE Stream (Common) — Syllabus",
+          "semester": 1,
+          "status": "published",
+          "subject_name": "First Year CSE Stream (Common)",
+          "subject_code": null,
+          "branch_slug": null
+        }
+      ],
+      "syllabusVersions": [
+        {
+          "id": "7279e20e-8f77-4347-ba49-06e8af164720",
+          "status": "verified",
+          "subject_name": "First Year CSE Stream (Common)",
+          "version_label": "Unlabelled version"
+        }
+      ],
+      "mismatches": [
+        "published under semester 1 but the document covers semester(s) 3"
+      ]
+    }
+  ]
+}

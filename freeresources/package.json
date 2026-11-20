@@ -1,0 +1,52 @@
+{
+  "name": "freeresources",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:seed": "node scripts/seed.mjs",
+    "test:api": "node scripts/e2e.mjs",
+    "test:admin": "node scripts/admin-e2e.mjs",
+    "test:acquisition": "node scripts/acquisition-e2e.mjs",
+    "db:seed:aktu": "node scripts/seed-aktu-acquisition.mjs",
+    "worker": "tsx scripts/worker.ts",
+    "storage:check": "tsx scripts/storage-check.ts",
+    "pdf:check": "tsx scripts/pdf-compress-check.ts",
+    "typecheck:workers": "tsc -p workers/tsconfig.json",
+    "audit:aktu": "tsx scripts/acquisition-audit.ts",
+    "fix:aktu": "tsx scripts/fix-aktu-data-quality.ts",
+    "d1:schema": "node scripts/build-d1-schema.mjs",
+    "d1:export": "node scripts/d1-export.mjs",
+    "d1:verify": "node scripts/d1-verify.mjs",
+    "d1:migrate:local": "wrangler d1 migrations apply freeresources-dev --local --config wrangler.jsonc",
+    "d1:import:local": "wrangler d1 execute freeresources-dev --local --file=db/d1-data/data.sql --config wrangler.jsonc",
+    "cf:dev": "wrangler dev --local --port 8787 --config wrangler.jsonc",
+    "cf:deploy": "wrangler deploy --config wrangler.jsonc",
+    "cf:deploy:pdf": "wrangler deploy --config wrangler.pdf.jsonc"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "lucide-react": "^0.468.0",
+    "next": "16.4.3",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.5.438",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261120.1",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0"
+  }
+}
