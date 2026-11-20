@@ -50,7 +50,12 @@ export default async function ResourcesPage() {
 
         {error && <p className="parrot-error" role="alert">{error}</p>}
 
-        {!error && rows.length === 0 && <p className="resource-empty">No resources published yet.</p>}
+        {!error && rows.length === 0 && (
+          <p className="resource-empty" role="status">
+            No course resources have been indexed yet. Nothing is shown here until a verified,
+            permission-checked document is approved for publishing.
+          </p>
+        )}
 
         <div className="resource-grid">
           {rows.map((row) => (

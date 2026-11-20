@@ -1,0 +1,33 @@
+{
+  "purpose": "Development/test fixture catalog. Never imported by production code and never seeded unless scripts/seed.mjs is run with --with-fixtures.",
+  "generatedBy": "scripts/seed.mjs --with-fixtures",
+  "marker": "Every row created from this fixture is written with is_sample = 1 (subjects, resources) so it can be removed deterministically.",
+  "sampleSubjects": [
+    "aktu-btech-cse-sem3-data-structures",
+    "aktu-btech-cse-sem4-operating-systems",
+    "dtu-btech-cse-sem3-data-structures",
+    "ggsipu-btech-cse-sem3-data-structures",
+    "ccsu-bca-sem2-programming-in-c",
+    "du-bsc-computer-science-sem3-data-structures",
+    "ignou-bca-sem2-programming-in-c"
+  ],
+  "sampleResources": [
+    "data-structures-previous-year-paper-sample-1",
+    "data-structures-handwritten-notes-sample-2",
+    "data-structures-important-questions-sample-3",
+    "data-structures-syllabus-overview-sample-4",
+    "operating-systems-syllabus-overview-sample-5",
+    "operating-systems-unit-wise-notes-sample-6",
+    "dtu-data-structures-previous-year-paper-sample-7",
+    "ggsipu-data-structures-handwritten-notes-sample-8",
+    "ccsu-programming-in-c-previous-year-paper-sample-9",
+    "ccsu-programming-in-c-class-notes-sample-10",
+    "du-data-structures-digital-notes-sample-11",
+    "ignou-programming-in-c-question-bank-sample-12",
+    "data-structures-question-bank-sample-13",
+    "data-structures-practical-file-sample-14"
+  ],
+  "fixtureDocumentSources": [
+    "http://localhost:4111/syllabus-ds.pdf"
+  ]
+}

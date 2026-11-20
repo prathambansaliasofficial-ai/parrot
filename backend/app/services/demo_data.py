@@ -1,9 +1,21 @@
-"""Curated demo dataset for Parrot's demo mode.
+"""Labelled demo fixture for Parrot's tutor demo mode.
 
-This data is clearly labelled demo/sample content. It exists so the study
-loop (retrieve -> explain -> quiz -> evaluate -> progress) can be exercised
-end to end without Supabase credentials or an LLM key. When Supabase/LLM
-credentials are configured, the real integrations take precedence.
+IMPORTANT: this module is a development/test fixture. It is NOT a resource
+catalog. `GET /api/v1/resources` no longer serves any of these rows — when
+Supabase is unconfigured the endpoint returns an empty list and the website
+shows an explicit "not indexed yet" state.
+
+What this fixture still does: when no LLM key is configured, the tutoring loop
+(retrieve -> explain -> quiz -> evaluate -> progress) needs *some* text to work
+on, so demo replies are generated from it. Every such reply is labelled with
+`demo_mode: true` and a visible `[Parrot demo mode …]` banner. That labelling
+is a transparency marker, never a claim that the content is a real course
+resource.
+
+Rules for new code:
+  * never return these rows from a public catalog endpoint;
+  * never persist them as published academic records;
+  * keep the demo labels on every response that uses them.
 """
 
 from __future__ import annotations

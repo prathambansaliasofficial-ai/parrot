@@ -11,6 +11,36 @@
 - **Hackathon:** Fetch-A-Thon 3.0 — powered by ASI:1
 - **Demo, presentation, team, and additional resources:** links will be added here
 
+## Repository layout
+
+| Path | What it is |
+| --- | --- |
+| `frontend/` | Parrot AI website (Next.js 16, React 19, TypeScript, Tailwind) |
+| `backend/` | FastAPI API: resource catalog, tutoring, quiz/teach-back evaluation |
+| `agent/` | Fetch.ai uAgent that routes chat to the backend tutor endpoints |
+| `freeresources/` | Cloudflare platform: AKTU catalog, admin portal, acquisition pipeline (D1, R2, Queues, Workflows, Containers) |
+| `supabase/migrations/` | Legacy Supabase schema, kept for existing deployments |
+
+## Data and storage policy
+
+- **Cloudflare D1** holds academic metadata: institutions, curricula, subjects,
+  syllabus structures, resource records, AI discovery candidates, approval state
+  and audit history.
+- **Cloudflare R2** holds the document binaries: original AKTU PDFs, optimized
+  derivatives and published versions, in `freeresources-*` buckets.
+- **GitHub** holds source code, migrations, the import/export pipeline and the
+  AKTU metadata manifest (`freeresources/data/aktu/manifest.json`). It never
+  holds PDFs, database files, D1 exports or credentials.
+
+The real dataset is reproducible from the manifest:
+
+```sh
+cd freeresources
+npm run data:aktu:export   # build the manifest from the audit + local database
+npm run data:aktu:verify   # validate hashes, sources, counts and classifications
+npm run data:aktu:import   # apply metadata to D1 (--local by default)
+```
+
 ## Vercel deployment
 
 The root [`vercel.json`](./vercel.json) configures `backend` (FastAPI) and
@@ -65,7 +95,7 @@ FreeResources.in is planned to organize course material in five categories:
 4. Reference books
 5. Tests and syllabus material
 
-For the hackathon demonstration, the project will use clearly identified demo or sample content. Institution-specific resources are intended to keep explanations and practice relevant to the course rather than drawing only on broad, unrelated material.
+Resources are real, permission-checked documents indexed from official university sources. Nothing is fabricated to make a course page look populated: a category with no verified material shows an explicit empty state instead of sample files.
 
 ## Agentic AI and the Fetch.ai / ASI stack
 
@@ -96,7 +126,7 @@ The implementation is being planned around the following stack. The repository i
 | File storage | S3-compatible object storage (planned) | Keep uploaded PDFs and other course files |
 | Integrations | Authorized provider APIs and OAuth connections (planned) | Connect supported services such as Notion and Google Calendar |
 
-The first working prototype will prioritize the core loop: **select a demo course resource → ask Parrot to quiz you → explain your answer → receive material-grounded feedback**. External integrations and additional study tools can be added incrementally.
+The first working prototype prioritizes the core loop: **open a published course resource → ask Parrot to quiz you → explain your answer → receive material-grounded feedback**. External integrations and additional study tools can be added incrementally.
 
 ### Why the Fetch.ai / ASI components matter
 
@@ -117,7 +147,7 @@ This learning loop is inspired by the idea that explaining a concept to someone 
 
 - Parrot is intended to support learning and exam preparation, not to promise exam results.
 - Answers should be grounded in the selected course resources where available, and the experience should make it clear when the material does not support a confident answer.
-- Demo content will be identified as demo content.
+- Academic records come from verified sources only. Demonstration data is never imported into the student-facing catalog, and tutor replies that run without an AI key are explicitly labelled as demo mode.
 - Connected services should only be used through supported APIs and with the student’s authorization.
 - Integrations such as NotebookLM will be explored only through supported access methods; the project will not imply that an unsupported API is available.
 
@@ -135,7 +165,11 @@ The prototype is focused on demonstrating a complete, understandable agent workf
 
 ## Current status
 
-**Stage: idea and initial prototype setup.** The project is being prepared for the hackathon. Demo data, deployed features, integrations, and final implementation details will be documented here as they become available.
+**Stage: working prototype with a real AKTU dataset.** The Parrot study companion (Next.js frontend, FastAPI tutoring API, Fetch.ai uAgent) runs today, and the Cloudflare-native FreeResources platform indexes genuine AKTU documents into D1 and R2.
+
+See [`DEVELOPMENT.md`](./DEVELOPMENT.md) for the full setup guide and
+[`freeresources/docs/AKTU-AUDIT.md`](./freeresources/docs/AKTU-AUDIT.md) for the
+document classification audit.
 
 ## About Fetch-A-Thon 3.0
 
