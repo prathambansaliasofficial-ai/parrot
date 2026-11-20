@@ -15,10 +15,9 @@
 
 | Path | What it is |
 | --- | --- |
-| `frontend/` | Parrot AI website (Next.js 16, React 19, TypeScript, Tailwind) |
-| `backend/` | FastAPI API: resource catalog, tutoring, quiz/teach-back evaluation |
+| `freeresources/` | The web app Vercel builds for `/` (Next.js 16, React 19, TypeScript, Tailwind): free catalog, admin portal, Parrot AI widget, AKTU acquisition pipeline. Also the Cloudflare target (D1, R2, Queues, Workflows, Containers) |
+| `backend/` | FastAPI API served at `/api/v1/*`: resource catalog, tutoring, quiz/teach-back evaluation |
 | `agent/` | Fetch.ai uAgent that routes chat to the backend tutor endpoints |
-| `freeresources/` | Cloudflare platform: AKTU catalog, admin portal, acquisition pipeline (D1, R2, Queues, Workflows, Containers) |
 | `supabase/migrations/` | Legacy Supabase schema, kept for existing deployments |
 
 ## Data and storage policy
@@ -43,19 +42,19 @@ npm run data:aktu:import   # apply metadata to D1 (--local by default)
 
 ## Vercel deployment
 
-The root [`vercel.json`](./vercel.json) configures `backend` (FastAPI) and
-`frontend` (Next.js) as services. Requests under `/api/` are routed to the
-backend; all other public paths go to the frontend. The frontend's
-`BACKEND_URL` service binding is used for server-rendered resource requests,
-while browser requests use the public `/api/` route.
+The root [`vercel.json`](./vercel.json) configures two services: `backend`
+(FastAPI) and `frontend`, which builds the Next.js app in
+[`freeresources/`](./freeresources). Requests under `/api/v1/` are routed to
+the backend; everything else, including the app's own `/api/auth`, `/api/parrot`
+and `/api/download` route handlers, is served by the Next.js app. The
+`BACKEND_URL` service binding is used for server-rendered catalog requests and
+by the Parrot AI route, so no separate `NEXT_PUBLIC_API_BASE_URL` is needed.
 
 The Fetch.ai uAgent in `agent/` is a persistent process, not a Vercel request
 handler, so it is not included as a Vercel service. If hosted separately, set
 its `PARROT_API_BASE_URL` to this deployment's base URL. Configure the backend's
-server-side secrets in Vercel. Leave `NEXT_PUBLIC_API_BASE_URL` unset (or set it
-to `/api`) so browser calls use the public rewrite, and set `CORS_ORIGINS` to
-include the deployed frontend origin (as well as `http://localhost:3000` when
-needed).
+server-side secrets in Vercel, and set `CORS_ORIGINS` to include the deployed
+site origin (as well as `http://localhost:3000` when needed).
 
 ## The problem
 
@@ -165,7 +164,7 @@ The prototype is focused on demonstrating a complete, understandable agent workf
 
 ## Current status
 
-**Stage: working prototype with a real AKTU dataset.** The Parrot study companion (Next.js frontend, FastAPI tutoring API, Fetch.ai uAgent) runs today, and the Cloudflare-native FreeResources platform indexes genuine AKTU documents into D1 and R2.
+**Stage: working prototype with a real AKTU dataset.** One Next.js app (`freeresources/`) serves the catalog and the Parrot study companion, backed by the FastAPI tutoring API and the Fetch.ai uAgent. It ships with no demonstration academic records; genuine AKTU documents are imported through the manifest pipeline into D1 and R2.
 
 See [`DEVELOPMENT.md`](./DEVELOPMENT.md) for the full setup guide and
 [`freeresources/docs/AKTU-AUDIT.md`](./freeresources/docs/AKTU-AUDIT.md) for the

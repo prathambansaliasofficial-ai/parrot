@@ -4,7 +4,13 @@ import { clientIp, fail, guardOrigin, rateLimit } from "@/lib/http";
 
 export const runtime = "nodejs";
 
-const BASE = (process.env.PARROT_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
+// PARROT_API_BASE_URL wins locally; on Vercel the backend service binding
+// injects BACKEND_URL, which is the same FastAPI app the tutor endpoints live in.
+const BASE = (
+  process.env.PARROT_API_BASE_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:8000"
+).replace(/\/$/, "");
 
 const PATHS: Record<string, string> = {
   message: "/api/v1/tutor/message",

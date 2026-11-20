@@ -40,10 +40,11 @@ export default function DisclaimerPage() {
 
           <h2>Sample records</h2>
           <p>
-            Some records are clearly marked <strong>SAMPLE</strong>. These are generated demonstration PDFs used to
-            exercise preview, download and review workflows. They are not real question papers and must not be used for
-            exam preparation. Any university or subject without a SAMPLE label still needs verification against your
-            own syllabus before you rely on it.
+            The library ships with no demonstration or placeholder papers: a resource appears only after a real,
+            permission-checked document is reviewed and published. If a legacy record is still marked{" "}
+            <strong>SAMPLE</strong>, treat it as an upload-workflow example rather than a real question paper, and do
+            not use it for exam preparation. Every university and subject still needs verification against your own
+            syllabus before you rely on it.
           </p>
 
           <h2>Syllabus and exams</h2>

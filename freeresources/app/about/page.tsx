@@ -76,9 +76,9 @@ export default function AboutPage() {
 
           <h2>Current stage</h2>
           <p>
-            The platform is live with real university metadata and a small set of clearly labelled demonstration
-            files that exercise preview, download and review. The library grows as students contribute verified
-            material. Empty shelves are shown honestly rather than filled with placeholders.
+            The platform runs on real university metadata and ships with no demonstration files. The library grows
+            only as reviewed, permission-checked material is approved. Empty shelves are shown honestly rather than
+            filled with placeholders.
           </p>
 
           <h2>Get involved</h2>

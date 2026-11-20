@@ -4,7 +4,10 @@ import path from "node:path";
 
 export const STORAGE_DIR = process.env.STORAGE_DIR
   ? path.resolve(process.env.STORAGE_DIR)
-  : path.join(process.cwd(), "storage", "uploads");
+  : // Vercel serves from a read-only filesystem; /tmp is the only writable path.
+    process.env.VERCEL
+    ? path.join("/tmp", "freeresources-storage")
+    : path.join(process.cwd(), "storage", "uploads");
 
 const MAX_BYTES = Number(process.env.MAX_UPLOAD_MB || 20) * 1024 * 1024;
 
