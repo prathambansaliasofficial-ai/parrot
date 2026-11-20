@@ -1,3 +1,4 @@
+import { randomBytes, scryptSync } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
@@ -66,8 +67,41 @@ export function getDb(): Database.Database {
   }
   db.exec("CREATE INDEX IF NOT EXISTS idx_resources_college ON resources(college_id)");
 
+  ensureAdminAccount(db);
+
   instance = db;
   return db;
+}
+
+const DEFAULT_ADMIN_EMAIL = "admin@freeresources.in";
+const DEFAULT_ADMIN_PASSWORD = "FreeResources@2026";
+
+/**
+ * Guarantees an administrator exists so /admin is reachable in every
+ * environment. The previous flow only created the account through
+ * `npm run db:seed`, which a deployment never runs — leaving the portal
+ * permanently stuck on "log in" with an empty users table.
+ *
+ * Set ADMIN_EMAIL / ADMIN_PASSWORD to override the documented defaults.
+ */
+export function ensureAdminAccount(db: Database.Database): void {
+  const existing = db.prepare("SELECT COUNT(*) AS c FROM users").get() as { c: number };
+  if (Number(existing.c) > 0) return;
+
+  const email = (process.env.ADMIN_EMAIL ?? DEFAULT_ADMIN_EMAIL).toLowerCase();
+  const password = process.env.ADMIN_PASSWORD ?? DEFAULT_ADMIN_PASSWORD;
+  const salt = randomBytes(16).toString("hex");
+  const hash = `scrypt:${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
+
+  db.prepare(
+    "INSERT INTO users (id, email, name, password_hash, role) VALUES (lower(hex(randomblob(16))), ?, ?, ?, 'admin')",
+  ).run(email, "Administrator", hash);
+
+  if (!process.env.ADMIN_PASSWORD) {
+    console.warn(
+      "[freeresources] Created the admin account with the default password. Set ADMIN_EMAIL and ADMIN_PASSWORD in the environment to override it.",
+    );
+  }
 }
 
 export type Row = Record<string, unknown>;

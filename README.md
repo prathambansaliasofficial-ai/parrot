@@ -50,6 +50,14 @@ and `/api/download` route handlers, is served by the Next.js app. The
 `BACKEND_URL` service binding is used for server-rendered catalog requests and
 by the Parrot AI route, so no separate `NEXT_PUBLIC_API_BASE_URL` is needed.
 
+The catalog data lives in Cloudflare D1. Vercel has no D1 binding, so set
+`CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_DATABASE_ID` and
+`CLOUDFLARE_D1_API_TOKEN` (D1 read permission) on the project; each server
+instance copies those rows into its local database at startup. Without them the
+deployment renders an empty catalog. The administrator account is created from
+`ADMIN_EMAIL` / `ADMIN_PASSWORD` when the database is first initialised, which is
+what makes `/admin` reachable.
+
 The Fetch.ai uAgent in `agent/` is a persistent process, not a Vercel request
 handler, so it is not included as a Vercel service. If hosted separately, set
 its `PARROT_API_BASE_URL` to this deployment's base URL. Configure the backend's
