@@ -55,6 +55,21 @@ to `/tmp` there (`DATABASE_PATH` and `STORAGE_DIR` override this) and that state
 is lost between function instances. Cloudflare D1 + R2 is the persistent target;
 see `freeresources/docs/CLOUDFLARE.md`.
 
+Because that filesystem starts empty, a deployment has no catalog data until
+Cloudflare D1 is connected. Set these Vercel environment variables (a token with
+D1 read permission is enough):
+
+| Variable | Value |
+| --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
+| `CLOUDFLARE_D1_DATABASE_ID` | D1 database id (`wrangler d1 list`) |
+| `CLOUDFLARE_D1_API_TOKEN` | API token, D1: Read |
+
+At startup each server instance copies the D1 rows into its local SQLite file
+(`freeresources/lib/d1-hydrate.ts`, called from `instrumentation.ts`) and skips
+the copy when the database already has data. Writes still land in `/tmp` and are
+not persisted; D1 stays the durable source of truth.
+
 ## Backend (`backend/`)
 
 Windows PowerShell:
@@ -150,11 +165,14 @@ npm run db:seed             # reference metadata only: universities, categories,
 npm run dev:admin           # log in with a local-only admin account (see below)
 ```
 
-### Local admin account
+### Admin account
 
-`npm run db:seed` creates an admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` in your
-local `.env`. Use a throwaway local password; production credentials belong in
-Cloudflare secrets, never in a file in this repository.
+The first time a database is initialised, `lib/db.ts` creates one administrator
+from `ADMIN_EMAIL` / `ADMIN_PASSWORD`, so `/admin` is reachable on a fresh
+checkout and on a deployment without running a seed script. `npm run db:seed`
+uses the same two variables. Use a throwaway local password and set
+`ADMIN_PASSWORD` in the deployment environment; production credentials belong in
+environment/secrets configuration, never in a file in this repository.
 
 ### Local D1, R2, queues, workflows
 
