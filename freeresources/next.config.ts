@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["better-sqlite3"],
+  // The SQLite schema is read at runtime by lib/db.ts; make sure the serverless
+  // bundle ships the .sql files, not just the compiled code.
+  outputFileTracingIncludes: {
+    "/**": ["./db/*.sql"],
+  },
   experimental: {
     serverActions: { bodySizeLimit: "30mb" },
   },

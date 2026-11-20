@@ -1,23 +1,18 @@
 # Development setup
 
-This repository is a monorepo. It contains two generations of the FreeResources
-product that are kept side by side on purpose:
+This repository is a monorepo. `freeresources/` is the single web app Vercel
+builds and serves at `/`.
 
 | Path | What it is | Runtime |
 | --- | --- | --- |
-| `frontend/` | Parrot AI study companion website (Next.js 16, React 19, TypeScript, Tailwind). Tutor widget, resources pages, login. | Node 22 |
-| `backend/` | FastAPI API: resource catalog, tutoring engine, quiz/teach-back evaluation, learning progress. | Python 3.12 |
+| `freeresources/` | The production web app (Next.js 16, React 19, TypeScript, Tailwind): public catalog, admin dashboard, Parrot AI widget, academic acquisition pipeline. Vercel builds this directory for `/`; Wrangler deploys it to Cloudflare. | Node 22 + Wrangler |
+| `backend/` | FastAPI API served at `/api/v1/*`: resource catalog, tutoring engine, quiz/teach-back evaluation, learning progress. | Python 3.12 |
 | `agent/` | Fetch.ai uAgent that routes chat messages to the backend tutoring endpoints. | Python 3.12 |
-| `freeresources/` | Cloudflare-native FreeResources AKTU platform: public catalog, admin dashboard, academic acquisition pipeline (D1, R2, Queues, Workflows, Containers). | Node 22 + Wrangler |
 | `supabase/migrations/` | Legacy Supabase schema, kept for existing deployments. | — |
 
-`freeresources/` is the Cloudflare direction for the academic database and
-document storage. The Parrot frontend, FastAPI tutoring services and the uAgent
-are not being replaced: they keep working and are deployed separately
-(`vercel.json` describes that older deployment).
-
-Do not create a second Next.js app or a second resource database. Extend
-`freeresources/`.
+The older `frontend/` Next.js app was merged into `freeresources/`, so there is
+one web app and one place for pages, components and academic data. Do not
+create a second Next.js app or a second resource database.
 
 ## Required software
 
@@ -39,18 +34,26 @@ git pull --ff-only origin main
 Windows: use PowerShell and `py -3.12` instead of `python3`. POSIX: use
 `python3.12`. The commands below show both where they differ.
 
-## Frontend (`frontend/`)
+## Web app (`freeresources/`)
 
 ```sh
-cd frontend
+cd freeresources
 npm ci
-cp .env.example .env.local        # Windows: copy .env.example .env.local
+cp .env.example .env              # Windows: copy .env.example .env
 npm run dev                       # http://localhost:3000
 ```
 
-`.env.local` needs `BACKEND_URL` (server-side catalog requests) and optionally
-`NEXT_PUBLIC_API_BASE_URL=/api`. Never put a Supabase secret or ASI key in a
+`vercel.json` builds this directory for `/` and routes `/api/v1/*` to the
+`backend` service; the service binding injects `BACKEND_URL`, which the Parrot
+AI route uses when `PARROT_API_BASE_URL` is unset. Locally set
+`PARROT_API_BASE_URL=http://localhost:8000` (or `BACKEND_URL`). Optional:
+`NEXT_PUBLIC_SITE_URL`. Never put an API key or service-role secret in a
 `NEXT_PUBLIC_*` variable.
+
+Vercel's runtime filesystem is read-only, so SQLite and uploaded files fall back
+to `/tmp` there (`DATABASE_PATH` and `STORAGE_DIR` override this) and that state
+is lost between function instances. Cloudflare D1 + R2 is the persistent target;
+see `freeresources/docs/CLOUDFLARE.md`.
 
 ## Backend (`backend/`)
 
@@ -205,9 +208,9 @@ Both are idempotent and preserve rows that have real resources attached.
 ## Tests
 
 ```sh
-cd frontend && npm run lint && npm run build
+cd freeresources && npm run typecheck && npm run build
+cd freeresources && npm run test:api && npm run test:admin
 cd backend  && python -m pytest
-cd freeresources && npm run typecheck && npm run test:api && npm run test:admin
 ```
 
 Test fixtures are isolated under test directories (`backend/tests/`,

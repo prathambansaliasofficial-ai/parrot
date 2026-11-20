@@ -4,9 +4,11 @@ import Database from "better-sqlite3";
 
 /** Resolved lazily so a worker that loads .env after imports still gets the path. */
 function dbPath(): string {
-  return process.env.DATABASE_PATH
-    ? path.resolve(process.env.DATABASE_PATH)
-    : path.join(process.cwd(), "db", "freeresources.db");
+  if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
+  // Vercel's runtime filesystem is read-only apart from /tmp. Cloudflare Workers
+  // use D1 and never reach this code path.
+  if (process.env.VERCEL) return path.join("/tmp", "freeresources.db");
+  return path.join(process.cwd(), "db", "freeresources.db");
 }
 
 let instance: Database.Database | null = null;

@@ -6,7 +6,7 @@
       "framework": "fastapi"
     },
     "frontend": {
-      "root": "frontend",
+      "root": "freeresources",
       "framework": "nextjs",
       "bindings": [
         {
@@ -20,7 +20,7 @@
   },
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/v1/(.*)",
       "destination": {
         "service": "backend"
       }
