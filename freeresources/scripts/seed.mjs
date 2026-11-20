@@ -1,7 +1,12 @@
 /**
- * Seeds FreeResources with real university metadata and a small set of
- * clearly-labelled SAMPLE resources (real PDFs, zero download counts).
- * Run: node scripts/seed.mjs [--force]
+ * Seeds FreeResources with real reference metadata only: universities,
+ * programmes, categories, academic years, site settings and FAQs.
+ *
+ * It creates NO academic resources and NO subjects by default. The fabricated
+ * SAMPLE catalog (sample subjects, sample PDFs, fake download counters) is a
+ * development fixture and is only inserted with --with-fixtures.
+ *
+ * Run: node scripts/seed.mjs [--force] [--with-fixtures]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -13,6 +18,8 @@ const root = process.cwd();
 const dbPath = process.env.DATABASE_PATH ? path.resolve(process.env.DATABASE_PATH) : path.join(root, "db", "freeresources.db");
 const storageDir = process.env.STORAGE_DIR ? path.resolve(process.env.STORAGE_DIR) : path.join(root, "storage", "uploads");
 const force = process.argv.includes("--force");
+/** Development/test fixture only. Never enable for a production database. */
+const withFixtures = process.argv.includes("--with-fixtures");
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 fs.mkdirSync(storageDir, { recursive: true });
@@ -316,7 +323,9 @@ const subjects = [
     branch: "aktu-btech-cse",
     semester: 3,
     credits: "4",
-    sample: 0,
+    // Paraphrased syllabus text is not an official document, so this subject is
+    // fixture-only too until a real AKTU PDF is approved for it.
+    sample: 1,
     description:
       "Core third-semester AKTU subject covering arrays, linked lists, stacks, queues, trees, graphs, searching, sorting and hashing.",
     syllabusText:
@@ -331,7 +340,9 @@ const subjects = [
     branch: "aktu-btech-cse",
     semester: 4,
     credits: "4",
-    sample: 0,
+    // Paraphrased syllabus text is not an official document, so this subject is
+    // fixture-only too until a real AKTU PDF is approved for it.
+    sample: 1,
     description:
       "Fourth-semester AKTU subject covering process management, scheduling, synchronisation, memory management and file systems.",
     syllabusText:
@@ -412,8 +423,12 @@ const insertSubject = db.prepare(
   `INSERT INTO subjects (id, slug, name, code, university_id, programme_id, branch_id, semester, credits, description, syllabus_text, is_sample)
    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 );
+// Sample subjects exist only to hold the sample resources. Without
+// --with-fixtures they are never created, so production has no placeholder
+// subjects masquerading as real curricula.
+const seededSubjects = withFixtures ? subjects : subjects.filter((s) => !s.sample);
 const subjectIds = {};
-for (const s of subjects) {
+for (const s of seededSubjects) {
   const sid = id();
   subjectIds[s.slug] = sid;
   insertSubject.run(
@@ -686,7 +701,8 @@ const insertFile = db.prepare(
 
 const publishedDaysAgo = [2, 3, 4, 5, 6, 8, 9, 10, 12, 13, 15, 18, 20, 22];
 
-resourceSeed.forEach((r, index) => {
+const seededResources = withFixtures ? resourceSeed : [];
+seededResources.forEach((r, index) => {
   const subject = subjects.find((s) => s.slug === r.subject);
   const rid = id();
   const publishedAt = new Date(Date.now() - publishedDaysAgo[index % publishedDaysAgo.length] * 86400000)
@@ -767,8 +783,8 @@ const insertFaq = db.prepare(
 
 db.prepare("INSERT INTO announcements (id, title, body, tone) VALUES (?, ?, ?, ?)").run(
   id(),
-  "The library is live with a sample collection",
-  "University pages are real, but the resources currently marked SAMPLE are placeholders that demonstrate preview and download. Verified papers and notes will replace them as contributors submit material.",
+  "FreeResources is indexing AKTU academic material",
+  "University and programme pages are real reference metadata. Resource lists stay empty until a verified document is approved, so nothing here is filled in with sample content.",
   "info",
 );
 
@@ -779,10 +795,10 @@ setting.run(
   "Papers, notes and syllabus for your course — free, and organised by semester.",
 );
 
-console.log("Seeded FreeResources.");
+console.log("Seeded FreeResources reference metadata.");
 console.log(`  Universities: ${universities.length}`);
-console.log(`  Subjects:     ${subjects.length}`);
-console.log(`  Resources:    ${resourceSeed.length} (all labelled samples)`);
+console.log(`  Subjects:     ${seededSubjects.length}`);
+console.log(`  Resources:    ${seededResources.length}${withFixtures ? " (SAMPLE FIXTURES — development only)" : " (none; real resources come from the acquisition pipeline)"}`);
 console.log(`  Admin login:  ${adminEmail} / ${process.env.ADMIN_PASSWORD ? "(password from ADMIN_PASSWORD)" : adminPassword}`);
 console.log(`  Database:     ${dbPath}`);
 console.log(`  Files:        ${storageDir}`);

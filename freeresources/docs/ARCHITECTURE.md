@@ -11,10 +11,13 @@ Status legend: **implemented** · **verified locally** · **needs credentials** 
 |---|---|---|
 | Next.js 16.4.3 site + admin portal | implemented, runs on Node | dev server on :3100, 66/66 admin checks |
 | Acquisition pipeline (11 stages, leases, retries) | implemented, verified | 27/27 acquisition checks, separate worker |
-| AKTU document classification from PDF text | implemented, verified | `docs/AKTU-AUDIT.md` over 8 real/staged assets |
+| AKTU document classification from PDF text | implemented, verified | `docs/AKTU-AUDIT.md` over 9 assets: 6 genuine AKTU + 3 localhost fixtures (fixtures excluded from the dataset) |
 | AKTU metadata correction + audit trail | implemented, applied | `scripts/fix-aktu-data-quality.ts`, slug alias, `audit_log` |
 | D1 schema (41 tables) | implemented, verified locally | 2 migrations applied to local D1, 47 statements |
 | SQLite → D1 data migration | implemented, verified locally | 670 rows / 31 non-empty tables, 0 count mismatches, 0 FK violations |
+| Next.js app reading D1 directly | **not started** | the site still reads SQLite through `lib/db.ts` (27 modules); the acquisition Worker is the only D1 writer. See §"Single source of truth" below |
+| Demo/sample data in the product | removed (forward-only migrations) | `db/d1/0003_remove_demo_academic_data.sql`, `supabase/migrations/0003_remove_dtu_demo_catalog.sql`, `docs/DEMO-DATA-REMOVAL.md` |
+| AKTU metadata manifest + import | implemented, verified locally | `data/aktu/manifest.json` (6 documents, 1 published, 5 pending), `npm run data:aktu:verify` |
 | Acquisition Worker (Queues + Workflow + Cron + D1 + R2) | implemented, verified locally | real AKTU PDF downloaded → R2 (464,396 B) → D1 `awaiting_approval` |
 | Idempotency | implemented, verified locally | duplicate submit returned `created:false` |
 | Cloudflare Container (Ghostscript) | implemented, **not built or run** | no Docker on this machine; Windows local dev unsupported |
@@ -198,3 +201,33 @@ visible as failed rather than inferred from a percentage.
 - No deployment, no DNS change, no billable resource creation.
 - No rewrite of the 2,500 lines of synchronous SQLite access (see §3).
 - No invented AKTU curriculum. Only what the documents print is recorded.
+
+---
+
+## 8. Single source of truth — remaining work (C2)
+
+Current state, stated plainly so nobody assumes it is finished:
+
+| Reader | Store today | Target |
+| --- | --- | --- |
+| Acquisition Worker (`workers/acquisition`) | D1 | D1 (already correct) |
+| Admin portal (`app/admin/**`) | SQLite via `lib/db.ts` | D1 |
+| Public catalog (`lib/queries.ts`, `app/resources` etc.) | SQLite via `lib/db.ts` | D1 |
+| Auth, sessions, audit log | SQLite | D1 |
+| Downloads / previews (`app/api/download`, `app/api/preview`) | SQLite + local storage | D1 + R2 |
+
+`lib/db.ts` exposes a **synchronous** `better-sqlite3` API used by 27 modules.
+D1 is asynchronous, so this is a repository-layer change, not a binding swap:
+every call site must become `await`. The safe sequence is:
+
+1. Introduce `lib/repo/*` with async functions (`getResourceBySlug`, `listResources`,
+   `createSession`, …) and move one module group at a time behind them.
+2. Keep SQLite behind the same repository interface for local development
+   (`DATABASE_DRIVER=sqlite`) and select D1 in the Worker (`DATABASE_DRIVER=d1`).
+3. Port read paths first (catalog, admin lists), then write paths (auth, audit,
+   contributions), running `npm run test:api` and `npm run test:admin` after each.
+4. Only then delete the SQLite branch and the `d1:export` bridge.
+
+Until step 4, `npm run d1:export` remains the only way data reaches D1 from
+local development, and it must be run deliberately. Do not deploy a build in
+which the website and the acquisition Worker both write different databases.

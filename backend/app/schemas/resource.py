@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ResourceRead(BaseModel):
@@ -12,7 +12,11 @@ class ResourceRead(BaseModel):
     category: str
     description: str | None = None
     storage_path: str | None = None
-<<<<<<< HEAD
+    source_url: str | None = None
+    original_file_name: str | None = None
+    content_type: str | None = None
+    file_size_bytes: int | None = None
+    is_demo: bool = False
 
 
 class ResourceMetadata(BaseModel):
@@ -21,7 +25,7 @@ class ResourceMetadata(BaseModel):
     semester: str | None = None
     college: str | None = None
     course: str | None = None
-    topics: list[str] = []
+    topics: list[str] = Field(default_factory=list)
 
 
 class ResourcePassage(BaseModel):
@@ -32,12 +36,5 @@ class ResourcePassage(BaseModel):
 
 class ResourceDetail(ResourceRead):
     metadata: ResourceMetadata | None = None
-    passages: list[ResourcePassage] = []
-    source: Literal["supabase", "demo"] = "demo"
-=======
-    source_url: str | None = None
-    original_file_name: str | None = None
-    content_type: str | None = None
-    file_size_bytes: int | None = None
-    is_demo: bool = False
->>>>>>> 48299e259552bcd96d9e5997f35bae5d20ab9192
+    passages: list[ResourcePassage] = Field(default_factory=list)
+    source: Literal["supabase"] = "supabase"

@@ -44,3 +44,29 @@ uploads/
 frontend/dev.log
 frontend/.dev-pid
 frontend/tsconfig.tsbuildinfo
+
+# Cloudflare / Wrangler local state
+.wrangler/
+**/.wrangler/
+.dev.vars
+
+# Academic document storage and databases (never commit binaries or dumps)
+*.pdf
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+*.backup-*.db
+freeresources/db/d1-data/
+freeresources/storage/
+freeresources/.tools/
+**/storage/acquisition/
+**/uploads/
+*.dump
+*.sql.gz
+
+# Logs
+*.log
+logs/
+tmp/
+.tmp-*
