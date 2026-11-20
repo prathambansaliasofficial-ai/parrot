@@ -1,0 +1,30 @@
+/**
+ * Cloudflare configuration for the PDF processing Container Worker.
+ *
+ * Deploy separately from the acquisition Worker:
+ *   npx wrangler deploy --config wrangler.pdf.jsonc
+ *
+ * Requires a Workers paid plan with Containers enabled, and Docker for the
+ * image build. Not deployable from this development machine (no Docker).
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "freeresources-pdf-container",
+  "main": "workers/pdf-container/src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+
+  "containers": [
+    {
+      "class_name": "PdfContainer",
+      "image": "./containers/pdf/Dockerfile",
+      "max_instances": 2,
+      "instance_type": "standard-1"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "PDF", "class_name": "PdfContainer" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PdfContainer"] }]
+}

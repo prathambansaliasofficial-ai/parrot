@@ -1,0 +1,46 @@
+# FreeResources production topology.
+#
+#   docker compose up -d --build
+#
+# Two processes, one persistent volume:
+#   web     — Next.js (public site + admin)
+#   worker  — durable ingestion queue and the discovery scheduler
+#
+# Both mount the same data volume, so the SQLite database (WAL) and the
+# acquired documents are shared and survive container restarts/rebuilds.
+# `restart: unless-stopped` is what keeps the worker alive across crashes and
+# host reboots; nothing else supervises it.
+
+services:
+  web:
+    build: .
+    command: npm run start -- -p 3100
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    env_file:
+      - .env
+    environment:
+      DATABASE_PATH: /data/db/freeresources.db
+      ACQUISITION_STORAGE_DIR: /data/acquisition
+    volumes:
+      - fr-data:/data
+      - fr-storage:/app/storage
+
+  worker:
+    build: .
+    command: npm run worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_PATH: /data/db/freeresources.db
+      ACQUISITION_STORAGE_DIR: /data/acquisition
+      GHOSTSCRIPT_BIN: /usr/bin/gs
+    volumes:
+      - fr-data:/data
+      - fr-storage:/app/storage
+
+volumes:
+  fr-data:
+  fr-storage:

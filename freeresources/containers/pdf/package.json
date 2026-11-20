@@ -1,0 +1,13 @@
+{
+  "name": "freeresources-pdf-container",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Ghostscript + pdf.js document processing service for FreeResources",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^6.5.438"
+  }
+}
