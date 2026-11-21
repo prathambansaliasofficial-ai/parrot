@@ -15,7 +15,7 @@ Status legend: **implemented** · **verified locally** · **needs credentials** 
 | AKTU metadata correction + audit trail | implemented, applied | `scripts/fix-aktu-data-quality.ts`, slug alias, `audit_log` |
 | D1 schema (41 tables) | implemented, verified locally | 2 migrations applied to local D1, 47 statements |
 | SQLite → D1 data migration | implemented, verified locally | 670 rows / 31 non-empty tables, 0 count mismatches, 0 FK violations |
-| Next.js app reading D1 directly | **not started** | the site still reads SQLite through `lib/db.ts` (27 modules); the acquisition Worker is the only D1 writer. See §"Single source of truth" below |
+| Next.js app reading D1 directly | **not started**; a read-only hydration bridge exists for Vercel | the site still reads SQLite through `lib/db.ts` (27 modules); the acquisition Worker is the only D1 writer. See §8 "Single source of truth" and §9 "Transitional D1 hydration" |
 | Demo/sample data in the product | removed (forward-only migrations) | `db/d1/0003_remove_demo_academic_data.sql`, `supabase/migrations/0003_remove_dtu_demo_catalog.sql`, `docs/DEMO-DATA-REMOVAL.md` |
 | AKTU metadata manifest + import | implemented, verified locally | `data/aktu/manifest.json` (6 documents, 1 published, 5 pending), `npm run data:aktu:verify` |
 | Acquisition Worker (Queues + Workflow + Cron + D1 + R2) | implemented, verified locally | real AKTU PDF downloaded → R2 (464,396 B) → D1 `awaiting_approval` |
@@ -193,6 +193,16 @@ visible as failed rather than inferred from a percentage.
 - PG Hunter is untouched: every resource name is prefixed `freeresources-`, and
   no command in this change addresses an existing bucket, database, queue or
   Worker by name.
+- **Administrator bootstrap** (`ensureAdminAccount` in `lib/db.ts`) creates an
+  account only when no `role = 'admin'` user exists, so existing administrators
+  are never overwritten. Outside production it may use the documented
+  development password so a fresh checkout works offline. In production
+  (`NODE_ENV=production` or any `VERCEL_ENV`) it refuses to create anything
+  unless `ADMIN_PASSWORD` is explicitly set, is not that documented password,
+  and is at least 12 characters; it logs an error and leaves `/admin` locked
+  instead of accepting a publicly known credential. `npm run db:seed` enforces
+  the same rule. A non-admin account that already owns the configured email is
+  never promoted silently.
 
 ---
 
@@ -231,3 +241,34 @@ every call site must become `await`. The safe sequence is:
 Until step 4, `npm run d1:export` remains the only way data reaches D1 from
 local development, and it must be run deliberately. Do not deploy a build in
 which the website and the acquisition Worker both write different databases.
+
+---
+
+## 9. Transitional layer: D1 → SQLite hydration (Vercel only)
+
+`vercel.json` builds `freeresources/` at `/`, and Vercel has no D1 binding.
+`lib/d1-remote.ts` therefore reads D1 over the REST API and `lib/d1-hydrate.ts`
+(called once per server instance from `instrumentation.ts`) copies the rows into
+the instance's own SQLite file under `/tmp`.
+
+**Role: a compatibility shim, not the data architecture.** It exists so the
+current synchronous `better-sqlite3` data layer can render a populated catalog
+on Vercel while Phase C2 (§8) removes that data layer. It does not make the
+Next.js app a D1 client.
+
+| Property | Reality |
+|---|---|
+| Direction | D1 → SQLite only. The REST client is used for reads; nothing is written back. |
+| Authority | Cloudflare D1 stays the single authoritative store. The local file is a per-instance cache. |
+| When it runs | Only when D1 is configured **and** the local database has no `universities`/`resources` rows, so local development is never overwritten. |
+| Failure behaviour | All rows are fetched before any write; a failed read aborts and leaves the local database untouched. Per-table column intersection makes an older local schema harmless. |
+| Writes on Vercel | Land in `/tmp` and are lost with the instance. Nothing written there is durable, and nothing is synchronised back to D1. |
+| Auth state | `users` (including password hashes) is copied with the rest, so `/admin` sessions and accounts reset on every cold start. Acceptable while D1 holds the canonical users; not acceptable as the permanent design. |
+| Credentials | `CLOUDFLARE_D1_API_TOKEN` needs D1 **read** permission only, and must live in Vercel environment variables, never in Git. |
+| Workers path | Not used. A Workers deployment reads D1 through the native `DB` binding and must never route through this shim. |
+
+Two competing authoritative databases are explicitly rejected: there is no
+write-back, no dual-write and no second schema. When Phase C2 lands, delete
+`lib/d1-remote.ts`, `lib/d1-hydrate.ts` and `instrumentation.ts` together with
+the Vercel-only `/tmp` fallbacks in `lib/db.ts` and `lib/storage.ts`. Until then,
+this section is the honest description of what a Vercel deployment is doing.

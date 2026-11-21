@@ -74,7 +74,24 @@ export function getDb(): Database.Database {
 }
 
 const DEFAULT_ADMIN_EMAIL = "admin@freeresources.in";
+/**
+ * Local-development fallback only. Production refuses this value outright — see
+ * `ensureAdminAccount`. It is intentionally the same string the project used to
+ * ship as a "default credential"; keeping it here lets an existing local
+ * database stay usable while making it impossible to bootstrap a deployment
+ * with it.
+ */
 const DEFAULT_ADMIN_PASSWORD = "FreeResources@2026";
+const MIN_ADMIN_PASSWORD_LENGTH = 12;
+
+/**
+ * True for a deployable build. `NODE_ENV` covers `next start` / any container;
+ * `VERCEL_ENV` covers preview and production deployments, where `NODE_ENV` is
+ * also "production" but the build step can run without secrets present.
+ */
+function isProductionRuntime(): boolean {
+  return process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL_ENV);
+}
 
 /**
  * Guarantees an administrator exists so /admin is reachable in every
@@ -82,24 +99,66 @@ const DEFAULT_ADMIN_PASSWORD = "FreeResources@2026";
  * `npm run db:seed`, which a deployment never runs — leaving the portal
  * permanently stuck on "log in" with an empty users table.
  *
- * Set ADMIN_EMAIL / ADMIN_PASSWORD to override the documented defaults.
+ * Security rules:
+ * - Existing administrators are never touched or overwritten.
+ * - The check is for an `admin` row, not just any user: a student signing up
+ *   first must not permanently block administrator bootstrap.
+ * - Outside production, the documented development password is used when
+ *   `ADMIN_PASSWORD` is unset, so a fresh checkout works offline.
+ * - In production, bootstrap only runs with an explicit `ADMIN_PASSWORD` that
+ *   is not the documented development password and is at least 12 characters.
+ *   Otherwise it logs an error and creates nothing; /admin stays locked rather
+ *   than accepting a publicly known password.
  */
 export function ensureAdminAccount(db: Database.Database): void {
-  const existing = db.prepare("SELECT COUNT(*) AS c FROM users").get() as { c: number };
-  if (Number(existing.c) > 0) return;
+  const admins = db.prepare("SELECT COUNT(*) AS c FROM users WHERE role = 'admin'").get() as { c: number };
+  if (Number(admins.c) > 0) return;
 
-  const email = (process.env.ADMIN_EMAIL ?? DEFAULT_ADMIN_EMAIL).toLowerCase();
-  const password = process.env.ADMIN_PASSWORD ?? DEFAULT_ADMIN_PASSWORD;
+  const email = (process.env.ADMIN_EMAIL ?? DEFAULT_ADMIN_EMAIL).trim().toLowerCase();
+  const configured = process.env.ADMIN_PASSWORD?.trim() ?? "";
+
+  if (isProductionRuntime()) {
+    if (!configured) {
+      console.error(
+        "[freeresources] No administrator exists and ADMIN_PASSWORD is not set. Refusing to create an account with the development password in production; set ADMIN_EMAIL and ADMIN_PASSWORD (12+ characters) and restart.",
+      );
+      return;
+    }
+    if (configured === DEFAULT_ADMIN_PASSWORD || configured.length < MIN_ADMIN_PASSWORD_LENGTH) {
+      console.error(
+        `[freeresources] Refusing to create the administrator: ADMIN_PASSWORD is the documented development password or shorter than ${MIN_ADMIN_PASSWORD_LENGTH} characters.`,
+      );
+      return;
+    }
+    if (email === DEFAULT_ADMIN_EMAIL) {
+      console.warn(
+        "[freeresources] ADMIN_EMAIL is unset, so the administrator uses the documented address. Set ADMIN_EMAIL to a mailbox you control.",
+      );
+    }
+  }
+
+  const password = configured || DEFAULT_ADMIN_PASSWORD;
   const salt = randomBytes(16).toString("hex");
   const hash = `scrypt:${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
 
-  db.prepare(
-    "INSERT INTO users (id, email, name, password_hash, role) VALUES (lower(hex(randomblob(16))), ?, ?, ?, 'admin')",
-  ).run(email, "Administrator", hash);
+  try {
+    db.prepare(
+      "INSERT INTO users (id, email, name, password_hash, role) VALUES (lower(hex(randomblob(16))), ?, ?, ?, 'admin')",
+    ).run(email, "Administrator", hash);
+  } catch {
+    // The email is unique. If it already belongs to a non-admin account, that
+    // account must not be silently promoted or replaced.
+    console.error(
+      `[freeresources] Could not create the administrator: ${email} already exists as a non-admin account. Promote it deliberately or choose another ADMIN_EMAIL.`,
+    );
+    return;
+  }
 
-  if (!process.env.ADMIN_PASSWORD) {
+  if (configured) {
+    console.info("[freeresources] Created the bootstrap administrator from ADMIN_EMAIL / ADMIN_PASSWORD.");
+  } else {
     console.warn(
-      "[freeresources] Created the admin account with the default password. Set ADMIN_EMAIL and ADMIN_PASSWORD in the environment to override it.",
+      "[freeresources] Created the local administrator with the development password. Set ADMIN_EMAIL and ADMIN_PASSWORD to override it; production refuses this password.",
     );
   }
 }

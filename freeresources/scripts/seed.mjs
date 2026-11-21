@@ -72,7 +72,18 @@ const now = () => new Date().toISOString().replace("T", " ").slice(0, 19);
 /* ------------------------------------------------------------------ users */
 
 const adminEmail = (process.env.ADMIN_EMAIL || "admin@freeresources.in").toLowerCase();
-const adminPassword = process.env.ADMIN_PASSWORD || "FreeResources@2026";
+const DEVELOPMENT_ADMIN_PASSWORD = "FreeResources@2026";
+const adminPassword = process.env.ADMIN_PASSWORD || DEVELOPMENT_ADMIN_PASSWORD;
+
+// The seed script writes an administrator directly, so it has to enforce the
+// same rule as lib/db.ts: never plant the documented development password in a
+// production database.
+if ((process.env.NODE_ENV === "production" || process.env.VERCEL_ENV) && adminPassword === DEVELOPMENT_ADMIN_PASSWORD) {
+  console.error(
+    "Refusing to seed: ADMIN_PASSWORD is unset or still the documented development password. Set a unique password of 12+ characters.",
+  );
+  process.exit(1);
+}
 
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -799,6 +810,6 @@ console.log("Seeded FreeResources reference metadata.");
 console.log(`  Universities: ${universities.length}`);
 console.log(`  Subjects:     ${seededSubjects.length}`);
 console.log(`  Resources:    ${seededResources.length}${withFixtures ? " (SAMPLE FIXTURES — development only)" : " (none; real resources come from the acquisition pipeline)"}`);
-console.log(`  Admin login:  ${adminEmail} / ${process.env.ADMIN_PASSWORD ? "(password from ADMIN_PASSWORD)" : adminPassword}`);
+console.log(`  Admin login:  ${adminEmail} / ${process.env.ADMIN_PASSWORD ? "(password from ADMIN_PASSWORD)" : "(development password; set ADMIN_PASSWORD to change it)"}`);
 console.log(`  Database:     ${dbPath}`);
 console.log(`  Files:        ${storageDir}`);

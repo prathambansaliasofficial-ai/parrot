@@ -174,6 +174,12 @@ uses the same two variables. Use a throwaway local password and set
 `ADMIN_PASSWORD` in the deployment environment; production credentials belong in
 environment/secrets configuration, never in a file in this repository.
 
+Bootstrap never modifies an existing administrator, and it refuses to create one
+in production unless `ADMIN_PASSWORD` is set, is not the documented development
+password, and is 12+ characters. If it refuses, it logs the reason and `/admin`
+stays locked — set the variables and restart rather than reusing a known
+password. The deployment must also set `ADMIN_EMAIL` to a mailbox you control.
+
 ### Local D1, R2, queues, workflows
 
 ```sh
