@@ -11,6 +11,10 @@
 - **Hackathon:** Fetch-A-Thon 3.0 — powered by ASI:1
 - **Demo, presentation, team, and additional resources:** links will be added here
 
+## Relationship with FreeResources.in
+
+FreeResources.in is the independent, long-term academic resource platform: its purpose is to organize institution-specific study material and make core academic resources freely accessible to students. Parrot AI is a separate, complementary study-agent project developed for Fetch-A-Thon 3.0. It connects the learning experience to those resources through explanations, active recall, quizzes, and teach-back feedback. The two projects are designed to work together, but they have distinct identities and scopes: FreeResources.in is the resource platform, while Parrot is the AI learning companion.
+
 ## Repository layout
 
 | Path | What it is |
